@@ -8,3 +8,7 @@ Fluxo Inicial de persistência:
 
 Fluxo-02: Para verificar se existe um reprocessamento pendente:
 ![fluxo-02](https://www.planttext.com/plantuml/img/VP0nRiCm34LtdkAFpb2WwEWEoPIfdGfaogBONmWBMJ8asV1zCWJeDNonCCbMeEL4yk7pazoLwdATXY1IjGPY7wOblRo-jJWmgzVEeH2L0pB7d3gMuWR6cZ0ozfOGFU4CpMwzhfU4OyIdOwavuOjvrexM4daOYRGVwmySl0Pt5_urz5r4FHekMimXdRvfC3vrsmtgcH5DqM4Zi6YpuMmu_JEGmGvfegtuInId40p7NlrzpJIAxAoofzm0 "Fluxo para verificar se existe reprocessamento pendente")
+
+Fluxo-03: Aprovar um reprocessamento para início imediato
+
+![Fluxo-03](https://www.planttext.com/plantuml/img/bP2zYW9H38NxF4NAtK8GjXiBjH4i166nsoRCH0pSkRdatfdrTMIBVP1vCUDF8Ig2NVxETyYPvK9MkZO052c1SH6wlOx6NnNEasbFm__mfzWe6djVSyxKSYoAFn5NnBcOuZTRBpNx2E3C0wWskHiE9efqng1YCcbPx97K46ub4FP2E5yl9wvUQthccJWsNh2V-8gfG9KfE5sY-yRQ0OcCRdI6yKfl-1utUKzTQ_HdWvjVlF5t9nxO1-yb5tu1cNx2AHTD03D_mCC-0W00)
