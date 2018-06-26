@@ -1,2 +1,8 @@
 # Plataforma-Maestro
 Maestro é um componente de plataforma para orquestrar o processo de persistência e reprocessamento da plataforma
+
+Fluxo Inicial de persistência:
+
+![fluxo-01](https://www.planttext.com/plantuml/img/TP4zRiCm38LtdOAZSmLdQ8QcG8OMGTAn2slHAG5PSaHPIC_JeGV9nKh9HMkaAA51uC_x7gMD98nf6fmnYPCZU73J9S3ESyVeO6V99-wvGq1ueev4sA8bq7EWCOQImK6R0hnuU4II50CSAMRkI5F6L80nxK6dNmcskJRh_9wYi2JoIbeR3UwXUQO1uetmIBxOg53KKiRhv_KZtAqWlP67HdXO6T1eJnD6Yq0_Z77103yD23qxB1KIhIcNd10qNlMgHhkda-ugm5wDbp61yrJGMPq9nOKxgpKVu9wb2vdUrzL3MM9xASobn8WH5vFnhtT52xgiBdyz_lSGCgDkh1U9uooXfiA0xB_xlEM-tinyBI4fZCPiDA6V_mK0 "Fluxo Inicial")
+
+
