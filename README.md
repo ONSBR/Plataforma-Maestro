@@ -12,3 +12,22 @@ Fluxo-02: Para verificar se existe um reprocessamento pendente:
 Fluxo-03: Aprovar um reprocessamento para início imediato
 
 ![Fluxo-03](https://www.planttext.com/plantuml/img/bP2zYW9H38NxF4NAtK8GjXiBjH4i166nsoRCH0pSkRdatfdrTMIBVP1vCUDF8Ig2NVxETyYPvK9MkZO052c1SH6wlOx6NnNEasbFm__mfzWe6djVSyxKSYoAFn5NnBcOuZTRBpNx2E3C0wWskHiE9efqng1YCcbPx97K46ub4FP2E5yl9wvUQthccJWsNh2V-8gfG9KfE5sY-yRQ0OcCRdI6yKfl-1utUKzTQ_HdWvjVlF5t9nxO1-yb5tu1cNx2AHTD03D_mCC-0W00)
+
+
+
+
+
+### Próximos Passos
+
+- [x] Instalar Maestro na Plataforma
+- [x] Conectar o Maestro ao Rabbit
+- [x] Receber os eventos de persistência da Plataforma
+- [x] Levantar uma API básica
+- [ ] Implementar um endpoint no domain para retornar a lista de entidades baseada na instancia do processo
+- [ ] Integrar com o Discovery para capturar as instancias que deverão ser reprocessadas
+- [ ] Implementar o serviço que permita ao admin e iniciar um reprocessamento
+- [ ] Implementar o serviço que permita ao admin ignorar um reprocessamento e por consequência ignorar um commit
+- [ ] Publicar instancias que deverão ser reprocessadas na fila de reprocessamento
+- [ ] Bloquear as execuções de persistência enquanto um reprocessamento estiver em execução
+- [ ] Fazer a persistência no domain quando oportuno
+
