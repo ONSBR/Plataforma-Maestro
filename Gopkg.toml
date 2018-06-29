@@ -44,3 +44,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/ONSBR/Plataforma-EventManager"
+
+[[constraint]]
+  name = "github.com/labstack/echo"
+  version = "3.3.5"

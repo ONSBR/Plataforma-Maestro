@@ -8,6 +8,6 @@ import (
 
 func TestShouldEmitEventsToReprocess(t *testing.T) {
 	Convey("should emit events to reprocess", t, func() {
-
+		//TODO
 	})
 }
