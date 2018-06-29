@@ -1,12 +1,29 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/PMoneda/carrot"
 )
 
 //PersistHandler handle message from persist events
 func PersistHandler(context *carrot.MessageContext) error {
-	//Pegou a mensagem da fila de persistencia
-	//Verificou se existe reprocessamento
+	eventParsed, err := getEventFromMessage(context)
+	if err != nil {
+		return err
+	}
+	fmt.Println(eventParsed)
 	return context.Ack()
+}
+
+func getEventFromMessage(context *carrot.MessageContext) (*domain.Event, error) {
+	celeryMessage := new(domain.CeleryMessage)
+	err := json.Unmarshal(context.Message.Data, celeryMessage)
+	if err != nil {
+		return nil, err
+	}
+	eventParsed := celeryMessage.Args[0]
+	return &eventParsed, nil
 }
