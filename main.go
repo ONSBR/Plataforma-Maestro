@@ -28,7 +28,6 @@ func main() {
 		Queue:   persistQueue,
 		Scale:   15,
 		Handler: handlers.PersistHandler,
-		AutoAck: true,
 	})
 	<-done
 }

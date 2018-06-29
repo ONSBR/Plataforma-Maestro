@@ -6,5 +6,7 @@ import (
 
 //PersistHandler handle message from persist events
 func PersistHandler(context *carrot.MessageContext) error {
-	return nil
+	//Pegou a mensagem da fila de persistencia
+	//Verificou se existe reprocessamento
+	return context.Ack()
 }

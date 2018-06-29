@@ -3,9 +3,27 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/ONSBR/Plataforma-Deployer"
+  packages = ["models/exceptions"]
+  revision = "a7fe5fb513e8e1f950f5097e3bb09bd40953c5fa"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/ONSBR/Plataforma-EventManager"
+  packages = ["domain"]
+  revision = "b61e6b9a3c9262b10c82b47cfa25ef252aba73e2"
+
+[[projects]]
+  branch = "master"
   name = "github.com/PMoneda/carrot"
   packages = ["."]
   revision = "956f5a48793080a528836d97e18d9a39f8bc8bc6"
+
+[[projects]]
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "064e2069ce9c359c118179501254f67d7d37ba24"
+  version = "0.2"
 
 [[projects]]
   branch = "master"
@@ -39,16 +57,9 @@
 [[projects]]
   name = "github.com/smartystreets/goconvey"
   packages = [
-    ".",
+    "convey",
     "convey/gotest",
-    "convey/reporting",
-    "web/server/api",
-    "web/server/contract",
-    "web/server/executor",
-    "web/server/messaging",
-    "web/server/parser",
-    "web/server/system",
-    "web/server/watch"
+    "convey/reporting"
   ]
   revision = "9e8dc3f972df6c8fcc0375ef492c24d0bb204857"
   version = "1.6.3"
@@ -62,6 +73,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d59652e6214b1d6c0946ff1fd2d9755d83199f74ee2f663f555a654e02a006e3"
+  inputs-digest = "fa60088d1f55b71a063ec712870cc5e167d056fa206c2de13e5b05d03fd41742"
   solver-name = "gps-cdcl"
   solver-version = 1
