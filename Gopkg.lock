@@ -11,7 +11,7 @@
   branch = "feature/reprocessamento"
   name = "github.com/ONSBR/Plataforma-EventManager"
   packages = ["domain"]
-  revision = "c6a9a53baef10b562b64e0403cd165479b7884f7"
+  revision = "1876d2631c22e9061cdfa4b8e35102c4e4195f91"
 
 [[projects]]
   branch = "master"

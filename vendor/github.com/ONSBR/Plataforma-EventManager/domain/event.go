@@ -31,7 +31,7 @@ type Event struct {
 	Payload      map[string]interface{} `json:"payload,omitempty"`
 	Reproduction map[string]interface{} `json:"reproduction,omitempty"`
 	Reprocessing map[string]interface{} `json:"reprocessing,omitempty"`
-	Bindings     []*Operation           `json:"-,omitempty"`
+	Bindings     []*Operation           `json:"-"`
 }
 
 //NewEvent creates a new Event Instance
