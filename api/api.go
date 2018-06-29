@@ -1,7 +1,9 @@
 package api
 
-import "github.com/labstack/echo"
-import "github.com/labstack/echo/middleware"
+import (
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+)
 
 //InitAPI starts web api for maestro
 func InitAPI() {
@@ -14,7 +16,8 @@ func InitAPI() {
 	group := e.Group("/v1.0.0")
 	// Routes
 	group.GET("/reprocessing/pending", getPendingReprocessing)
-
+	group.POST("/reprocess/top", reprocessTop)
+	group.POST("/reprocess/top/skip", reprocessTop)
 	// Start server
 	e.Logger.Fatal(e.Start(":8089"))
 }
