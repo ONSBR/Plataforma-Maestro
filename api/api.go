@@ -1,6 +1,9 @@
 package api
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -19,5 +22,5 @@ func InitAPI() {
 	group.POST("/reprocess/top", reprocessTop)
 	group.POST("/reprocess/top/skip", reprocessTop)
 	// Start server
-	e.Logger.Fatal(e.Start(":8089"))
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
 }

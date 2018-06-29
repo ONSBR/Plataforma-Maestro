@@ -1,18 +1,38 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+	"os"
+
+	"github.com/ONSBR/Plataforma-Maestro/api"
 	"github.com/ONSBR/Plataforma-Maestro/handlers"
 	"github.com/PMoneda/carrot"
 )
 
 const persistQueue string = "event.persist.queue"
 
+var local bool
+
+func init() {
+	flag.BoolVar(&local, "local", false, "to run service with local rabbitmq and services")
+}
+
 func main() {
-	done := make(chan bool)
+	logo()
+
+	flag.Parse()
+
+	if local {
+		os.Setenv("RABBITMQ_HOST", "localhost")
+		os.Setenv("RABBITMQ_USERNAME", "guest")
+		os.Setenv("RABBITMQ_PASSWORD", "guest")
+		os.Setenv("PORT", "8089")
+	}
 	config := carrot.ConnectionConfig{
-		Host:     "localhost",
-		Username: "guest",
-		Password: "guest",
+		Host:     os.Getenv("RABBITMQ_HOST"),
+		Username: os.Getenv("RABBITMQ_USERNAME"),
+		Password: os.Getenv("RABBITMQ_PASSWORD"),
 		VHost:    "plataforma_v1.0",
 	}
 	conn, _ := carrot.NewBrokerClient(&config)
@@ -26,8 +46,22 @@ func main() {
 
 	subscriber.Subscribe(carrot.SubscribeWorker{
 		Queue:   persistQueue,
-		Scale:   15,
+		Scale:   1,
 		Handler: handlers.PersistHandler,
 	})
-	<-done
+	fmt.Println("Waiting Events")
+	api.InitAPI()
+}
+
+func logo() {
+	fmt.Println(`
+                           _
+                          | |
+_ __ ___   __ _  ___   ___| |_ _ __ ___
+| '_ ' _ \ / _' |/ _ \/ __| __| '__/ _ \
+| | | | | | (_| |  __/\__ \ |_| | | (_) |
+|_| |_| |_|\__,_|\___||___/\__|_|  \___/
+
+`)
+
 }

@@ -14,7 +14,8 @@ func PersistHandler(context *carrot.MessageContext) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(eventParsed)
+	bb, _ := json.Marshal(eventParsed)
+	fmt.Println(string(bb))
 	return context.Ack()
 }
 

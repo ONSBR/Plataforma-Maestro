@@ -21,6 +21,7 @@ var SystemEvents = []string{
 type Event struct {
 	Timestamp    string                 `json:"timestamp"`
 	Branch       string                 `json:"branch"`
+	SystemID     string                 `json:"systemId,omitempty"`
 	Name         string                 `json:"name,omitempty"`
 	Tag          string                 `json:"tag"`
 	AppOrigin    string                 `json:"appOrigin,omitempty"`
@@ -30,7 +31,7 @@ type Event struct {
 	Payload      map[string]interface{} `json:"payload,omitempty"`
 	Reproduction map[string]interface{} `json:"reproduction,omitempty"`
 	Reprocessing map[string]interface{} `json:"reprocessing,omitempty"`
-	Bindings     []*Operation
+	Bindings     []*Operation           `json:"-,omitempty"`
 }
 
 //NewEvent creates a new Event Instance

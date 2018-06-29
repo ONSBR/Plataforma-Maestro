@@ -42,7 +42,7 @@
   name = "github.com/ONSBR/Plataforma-Deployer"
 
 [[constraint]]
-  branch = "master"
+  branch = "feature/reprocessamento"
   name = "github.com/ONSBR/Plataforma-EventManager"
 
 [[constraint]]

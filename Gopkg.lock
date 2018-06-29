@@ -8,10 +8,10 @@
   revision = "a7fe5fb513e8e1f950f5097e3bb09bd40953c5fa"
 
 [[projects]]
-  branch = "master"
+  branch = "feature/reprocessamento"
   name = "github.com/ONSBR/Plataforma-EventManager"
   packages = ["domain"]
-  revision = "b61e6b9a3c9262b10c82b47cfa25ef252aba73e2"
+  revision = "c6a9a53baef10b562b64e0403cd165479b7884f7"
 
 [[projects]]
   branch = "master"
@@ -138,6 +138,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "945f50bc6ad053e9f6162902831bb48efd20100279c21fd7cfc9b9f106e51bcc"
+  inputs-digest = "2eefbfe194750d98bcfec8a57dbd02263b29e0e04110cee917ca28f110f9a0ed"
   solver-name = "gps-cdcl"
   solver-version = 1
