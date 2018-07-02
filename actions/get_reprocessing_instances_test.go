@@ -1,11 +1,12 @@
 package actions
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 
-	"github.com/http"
+	"github.com/PMoneda/http"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -68,8 +69,6 @@ func TestShouldGetReprocessingInstances(t *testing.T) {
 
 		Convey("should return list of process instances", func() {
 
-			a := 1
-			a++
 			http.With(t, func(ctx *http.MockContext) {
 				ctx.RegisterMock(&mock)
 				ctx.RegisterMock(&mock2)
@@ -80,6 +79,23 @@ func TestShouldGetReprocessingInstances(t *testing.T) {
 				list, err := GetReprocessingInstances(evt)
 				So(err, ShouldBeNil)
 				So(len(list), ShouldBeGreaterThan, 0)
+			})
+		})
+
+		Convey("should return error when service fails", func() {
+			http.With(t, func(ctx *http.MockContext) {
+				ctx.RegisterMock(&http.ReponseMock{
+					URL:           mock.URL,
+					Method:        mock.Method,
+					ResponseError: fmt.Errorf("error"),
+				})
+				ctx.RegisterMock(&mock2)
+				evt := new(domain.Event)
+				evt.Name = "bla"
+				evt.InstanceID = "<process_instance>"
+				evt.SystemID = "<system_id>"
+				_, err := GetReprocessingInstances(evt)
+				So(err, ShouldNotBeNil)
 			})
 		})
 
