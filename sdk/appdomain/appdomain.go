@@ -8,9 +8,7 @@ import (
 )
 
 //EntitiesList maps entities that domain app will save based on process memory
-type EntitiesList []DomainEntity
-
-type DomainEntity map[string]interface{}
+type EntitiesList []map[string]interface{}
 
 //GetEntitiesByProcessInstance returns all entities that need to saved on domain to complete a process instance
 func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesList, *exceptions.Exception) {
