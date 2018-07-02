@@ -9,7 +9,7 @@ import (
 
 func TestShouldGetEventFromInstance(t *testing.T) {
 	Convey("should get event from instance", t, func() {
-		Convey("should return entities from domain", func() {
+		Convey("should return event from process memory", func() {
 			mock := http.ReponseMock{
 				Method: "GET",
 				URL:    "*",
@@ -37,6 +37,20 @@ func TestShouldGetEventFromInstance(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(event, ShouldNotBeNil)
 				So(event.Name, ShouldEqual, "consolida.saldo.request")
+			})
+		})
+
+		Convey("should not return event from process memory", func() {
+			mock := http.ReponseMock{
+				Method:      "GET",
+				URL:         "*",
+				ReponseBody: `[]`,
+			}
+			http.With(t, func(ctx *http.MockContext) {
+				ctx.RegisterMock(&mock)
+				event, err := GetEventByInstance("<process_intances>")
+				So(err.Error(), ShouldEqual, "event not found for instance <process_intances>")
+				So(event, ShouldBeNil)
 			})
 		})
 	})
