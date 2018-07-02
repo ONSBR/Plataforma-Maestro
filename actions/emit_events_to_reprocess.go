@@ -6,6 +6,6 @@ import (
 )
 
 //EmitEventsToReprocess put all reprocessing events to reprocessing queue
-func EmitEventsToReprocess(events *[]domain.Event) *exceptions.Exception {
+func EmitEventsToReprocess(events []*domain.Event) *exceptions.Exception {
 	return nil
 }

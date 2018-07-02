@@ -1,6 +1,7 @@
 package processmemory
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/PMoneda/http"
@@ -53,5 +54,32 @@ func TestShouldGetEventFromInstance(t *testing.T) {
 				So(event, ShouldBeNil)
 			})
 		})
+
+		Convey("should return error from process memory", func() {
+			mock := http.ReponseMock{
+				Method:        "GET",
+				URL:           "*",
+				ResponseError: fmt.Errorf("error"),
+			}
+			http.With(t, func(ctx *http.MockContext) {
+				ctx.RegisterMock(&mock)
+				_, err := GetEventByInstance("<process_intances>")
+				So(err, ShouldNotBeNil)
+			})
+		})
+
+		Convey("should return error from process memory when not returning json", func() {
+			mock := http.ReponseMock{
+				Method:      "GET",
+				URL:         "*",
+				ReponseBody: `hello`,
+			}
+			http.With(t, func(ctx *http.MockContext) {
+				ctx.RegisterMock(&mock)
+				_, err := GetEventByInstance("<process_intances>")
+				So(err, ShouldNotBeNil)
+			})
+		})
 	})
+
 }

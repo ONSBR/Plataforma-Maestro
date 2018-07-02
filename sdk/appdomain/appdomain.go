@@ -1,7 +1,10 @@
 package appdomain
 
 import (
+	"encoding/json"
 	"fmt"
+
+	"github.com/PMoneda/http"
 
 	"github.com/ONSBR/Plataforma-Deployer/models/exceptions"
 	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
@@ -13,6 +16,25 @@ type EntitiesList []map[string]interface{}
 //GetEntitiesByProcessInstance returns all entities that need to saved on domain to complete a process instance
 func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesList, *exceptions.Exception) {
 	list := make(EntitiesList, 0)
+	domainHost, err := getDomainHost(systemID)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("%s/instance/%s/entities", domainHost, processInstance)
+
+	resp, errR := http.Get(url)
+	if errR != nil {
+		return nil, exceptions.NewIntegrationException(errR)
+	}
+	errJ := json.Unmarshal([]byte(resp), &list)
+	if errJ != nil {
+		return nil, exceptions.NewInvalidArgumentException(errJ)
+	}
+	return list, nil
+}
+
+func getDomainHost(systemID string) (string, *exceptions.Exception) {
+	result := make([]map[string]interface{}, 1)
 	filter := apicore.Filter{
 		Entity: "installedApp",
 		Map:    "core",
@@ -26,9 +48,13 @@ func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesLis
 		},
 		},
 	}
-	err := apicore.Query(filter, &list)
+	err := apicore.Query(filter, &result)
 	if err != nil {
-		return nil, exceptions.NewComponentException(fmt.Errorf("%s", err.Error()))
+		return "", exceptions.NewComponentException(fmt.Errorf("%s", err.Error()))
 	}
-	return list, nil
+	if len(result) > 0 {
+		obj := result[0]
+		return fmt.Sprintf("http://%s:%d", obj["host"], uint(obj["port"].(float64))), nil
+	}
+	return "", exceptions.NewInvalidArgumentException(fmt.Errorf("no app found for %s id", systemID))
 }

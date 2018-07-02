@@ -54,7 +54,7 @@ func main() {
 }
 
 func logo() {
-	fmt.Println(`
+	fmt.Print(`
                            _
                           | |
 _ __ ___   __ _  ___   ___| |_ _ __ ___
