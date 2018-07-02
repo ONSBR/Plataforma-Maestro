@@ -4,7 +4,11 @@
 [[projects]]
   branch = "master"
   name = "github.com/ONSBR/Plataforma-Deployer"
-  packages = ["models/exceptions"]
+  packages = [
+    "env",
+    "models/exceptions",
+    "sdk/apicore"
+  ]
   revision = "a7fe5fb513e8e1f950f5097e3bb09bd40953c5fa"
 
 [[projects]]
@@ -18,6 +22,12 @@
   name = "github.com/PMoneda/carrot"
   packages = ["."]
   revision = "956f5a48793080a528836d97e18d9a39f8bc8bc6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/PMoneda/http"
+  packages = ["."]
+  revision = "f89b0e7a09b085ad3a9939614812fefa0fe827bd"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -138,6 +148,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2eefbfe194750d98bcfec8a57dbd02263b29e0e04110cee917ca28f110f9a0ed"
+  inputs-digest = "cb76ac77e607a208b9a3241104b5b21493e89568c8060458bad5a7a956743ba7"
   solver-name = "gps-cdcl"
   solver-version = 1
