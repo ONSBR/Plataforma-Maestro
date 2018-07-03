@@ -21,7 +21,7 @@
   branch = "master"
   name = "github.com/PMoneda/carrot"
   packages = ["."]
-  revision = "1565f6a91a073bc588b01a11f773366eda4057fc"
+  revision = "247cc7afaa57e548e2f77d0e69953d11c4f5a2b2"
 
 [[projects]]
   branch = "master"

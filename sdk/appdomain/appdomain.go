@@ -3,6 +3,7 @@ package appdomain
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/PMoneda/http"
 
@@ -31,6 +32,21 @@ func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesLis
 		return nil, exceptions.NewInvalidArgumentException(errJ)
 	}
 	return list, nil
+}
+
+//PersistEntitiesByInstance call domain to persist data based on process instance
+func PersistEntitiesByInstance(systemID, instanceID string) error {
+	domainHost, err := getDomainHost(systemID)
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%s/instance/%s/persist", domainHost, instanceID)
+	if resp, err := http.Post(url, nil); err != nil {
+		return err
+	} else if !strings.Contains(resp, "ok") {
+		return exceptions.NewIntegrationException(fmt.Errorf("%s", resp))
+	}
+	return nil
 }
 
 func getDomainHost(systemID string) (string, error) {
