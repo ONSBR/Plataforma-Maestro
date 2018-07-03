@@ -14,7 +14,7 @@ import (
 type EntitiesList []map[string]interface{}
 
 //GetEntitiesByProcessInstance returns all entities that need to saved on domain to complete a process instance
-func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesList, *exceptions.Exception) {
+func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesList, error) {
 	list := make(EntitiesList, 0)
 	domainHost, err := getDomainHost(systemID)
 	if err != nil {
@@ -33,7 +33,7 @@ func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesLis
 	return list, nil
 }
 
-func getDomainHost(systemID string) (string, *exceptions.Exception) {
+func getDomainHost(systemID string) (string, error) {
 	result := make([]map[string]interface{}, 1)
 	filter := apicore.Filter{
 		Entity: "installedApp",

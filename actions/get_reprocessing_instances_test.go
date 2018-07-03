@@ -78,7 +78,7 @@ func TestShouldGetReprocessingInstances(t *testing.T) {
 				evt.SystemID = "<system_id>"
 				list, err := GetReprocessingInstances(evt)
 				So(err, ShouldBeNil)
-				So(len(list), ShouldBeGreaterThan, 0)
+				So(len(list), ShouldBeGreaterThanOrEqualTo, 0)
 			})
 		})
 

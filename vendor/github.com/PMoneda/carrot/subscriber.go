@@ -63,7 +63,7 @@ func (sub *Subscriber) Subscribe(worker SubscribeWorker) error {
 			}
 			context.delivery = message
 			context.subscriber = sub
-			worker.Handler(context)
+			go worker.Handler(context)
 		}
 	}
 	for i = 0; i < worker.Scale; i++ {

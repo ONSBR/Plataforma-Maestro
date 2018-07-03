@@ -11,7 +11,7 @@ import (
 )
 
 //GetReprocessingInstances from discovery service based on perist event
-func GetReprocessingInstances(event *domain.Event) ([]string, *exceptions.Exception) {
+func GetReprocessingInstances(event *domain.Event) ([]string, error) {
 	if event.InstanceID == "" {
 		return nil, exceptions.NewInvalidArgumentException(fmt.Errorf("event %s should have instance id", event.Name))
 	}

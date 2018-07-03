@@ -6,6 +6,7 @@ import (
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-Maestro/actions"
 	"github.com/PMoneda/carrot"
+	"github.com/labstack/gommon/log"
 )
 
 //PersistHandler handle message from persist events
@@ -14,20 +15,23 @@ func PersistHandler(context *carrot.MessageContext) error {
 	if err != nil {
 		return err
 	}
+	errAck := context.Ack()
 	instances, err := actions.GetReprocessingInstances(eventParsed)
 	if err != nil {
-		return context.Nack(true)
+		log.Error(err)
+		return context.RedirectTo("reprocessing_stack", "persist_error")
 	}
 	if hasReprocessing(instances) {
 		if ex := actions.SubmitReprocessingToApprove(context, eventParsed, instances); ex != nil {
-			return context.Nack(true)
+			log.Error(err)
+			return context.RedirectTo("reprocessing_stack", "persist_error")
 		}
-		return context.Ack()
 	}
 	if ex := actions.ProceedToCommit(eventParsed); ex != nil {
-		return context.Nack(true)
+		log.Error(err)
+		return context.RedirectTo("reprocessing_stack", "persist_error")
 	}
-	return context.Ack()
+	return errAck
 }
 
 func hasReprocessing(instances []string) bool {
