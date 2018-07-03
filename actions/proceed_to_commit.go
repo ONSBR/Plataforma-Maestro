@@ -21,10 +21,8 @@ func ProceedToCommit(event *domain.Event) error {
 	})
 	mut.Lock()
 	if _, ok := hub[event.SystemID]; !ok {
-		//create a channel based on solution ID
 		log.Info(fmt.Sprintf("Creating a channel for solution %s", event.SystemID))
 		hub[event.SystemID] = make(chan *domain.Event)
-		//start worker to save one persist at time by solution
 		log.Info(fmt.Sprintf("Starting a worker for solution %s", event.SystemID))
 		go saveToDomain(hub[event.SystemID])
 	}
