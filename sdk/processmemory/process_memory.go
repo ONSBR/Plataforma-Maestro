@@ -12,7 +12,7 @@ import (
 )
 
 //GetEventByInstance returns event from process memory
-func GetEventByInstance(instanceID string) (*domain.Event, *exceptions.Exception) {
+func GetEventByInstance(instanceID string) (*domain.Event, error) {
 	evts := make([]*domain.Event, 1)
 	resp, err := http.Get(fmt.Sprintf("%s://%s:%s/%s/event", env.Get("PROCESS_MEMORY_SCHEME", "http"), env.Get("PROCESS_MEMORY_HOST", "localhost"), env.Get("PROCESS_MEMORY_PORT", "9091"), instanceID))
 	if err != nil {

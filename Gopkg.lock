@@ -2,14 +2,15 @@
 
 
 [[projects]]
-  branch = "master"
+  branch = "feature/reprocessamento"
   name = "github.com/ONSBR/Plataforma-Deployer"
   packages = [
     "env",
     "models/exceptions",
-    "sdk/apicore"
+    "sdk/apicore",
+    "sdk/eventmanager"
   ]
-  revision = "a7fe5fb513e8e1f950f5097e3bb09bd40953c5fa"
+  revision = "73037effc2f8514deaa67bb6a375ceb727b2a2dd"
 
 [[projects]]
   branch = "feature/reprocessamento"
@@ -148,6 +149,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d54c0099d91863ee0a9eaa9700bb398f89d48511a53491b0f2429b156c2c9a65"
+  inputs-digest = "a6d89643729b01cf70158e2491eeef289f5a2091054ac85fb555c4af1a36e454"
   solver-name = "gps-cdcl"
   solver-version = 1
