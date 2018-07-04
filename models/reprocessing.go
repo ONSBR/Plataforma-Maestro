@@ -12,4 +12,5 @@ type Reprocessing struct {
 	ID           string          `json:"id,omitempty"`
 	Events       []*domain.Event `json:"events,omitempty"`
 	ApprovedBy   string          `json:"approvedBy,omitempty"`
+	Status       string          `json:"status"`
 }

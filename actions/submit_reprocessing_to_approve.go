@@ -25,6 +25,7 @@ func SubmitReprocessingToApprove(context *carrot.MessageContext, persistEvent *d
 		PendingEvent: persistEvent,
 		SystemID:     persistEvent.SystemID,
 		ID:           etc.GetUUID(),
+		Status:       "pending_approval",
 	}
 	origin, err := processmemory.GetEventByInstance(persistEvent.InstanceID)
 	if err != nil {
