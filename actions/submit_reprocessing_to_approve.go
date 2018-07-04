@@ -21,11 +21,13 @@ func SubmitReprocessingToApprove(context *carrot.MessageContext, persistEvent *d
 		}
 		return
 	}
+	status := "pending_approval"
 	reprocessing := models.Reprocessing{
-		PendingEvent: persistEvent,
-		SystemID:     persistEvent.SystemID,
-		ID:           etc.GetUUID(),
-		Status:       "pending_approval",
+		PendingEvent:  persistEvent,
+		SystemID:      persistEvent.SystemID,
+		ID:            etc.GetUUID(),
+		Status:        status,
+		HistoryStatus: []models.ReprocessingStatus{models.ReprocessingStatus{Status: status, Timestamp: etc.GetStrTimestamp()}},
 	}
 	origin, err := processmemory.GetEventByInstance(persistEvent.InstanceID)
 	if err != nil {

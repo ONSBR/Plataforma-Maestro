@@ -6,13 +6,14 @@ import (
 	"os"
 
 	"github.com/ONSBR/Plataforma-Maestro/api"
+	"github.com/ONSBR/Plataforma-Maestro/broker"
 	"github.com/ONSBR/Plataforma-Maestro/handlers"
 	"github.com/PMoneda/carrot"
 )
 
-const persistQueue string = "event.persist.queue"
-
 var local bool
+
+const persistQueue string = "event.persist.queue"
 
 func init() {
 	flag.BoolVar(&local, "local", false, "to run service with local rabbitmq and services")
@@ -29,31 +30,13 @@ func main() {
 		os.Setenv("RABBITMQ_PASSWORD", "guest")
 		os.Setenv("PORT", "8089")
 	}
-	config := carrot.ConnectionConfig{
-		Host:     os.Getenv("RABBITMQ_HOST"),
-		Username: os.Getenv("RABBITMQ_USERNAME"),
-		Password: os.Getenv("RABBITMQ_PASSWORD"),
-		VHost:    "plataforma_v1.0",
-	}
-	conn, _ := carrot.NewBrokerClient(&config)
-
-	builder := carrot.NewBuilder(conn)
-	builder.DeclareTopicExchange("reprocessing_stack")
-	builder.DeclareQueue("persist.exception_q")
-	builder.DeclareQueue("create.reprocessing.exception_q")
-	builder.BindQueueToExchange("persist.exception_q", "reprocessing_stack", "#.persist_error.#")
-	builder.BindQueueToExchange("create.reprocessing.exception_q", "reprocessing_stack", "#.create_reprocessing_error.#")
-
-	subConn, _ := carrot.NewBrokerClient(&config)
-
-	subscriber := carrot.NewSubscriber(subConn)
-
+	broker.Init()
+	subscriber := broker.GetSubscriber()
 	subscriber.Subscribe(carrot.SubscribeWorker{
 		Queue:   persistQueue,
 		Scale:   1,
 		Handler: handlers.PersistHandler,
 	})
-	fmt.Println("Waiting Events")
 	api.InitAPI()
 }
 

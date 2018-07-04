@@ -13,3 +13,8 @@ func LogDuration(label string, callback func()) {
 	callback()
 	log.Info(fmt.Sprintf("execution time of %s: ", label), time.Now().Sub(begin))
 }
+
+//GetStrTimestamp returns timestamp as string
+func GetStrTimestamp() string {
+	return time.Now().UTC().String()
+}

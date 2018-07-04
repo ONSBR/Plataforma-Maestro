@@ -19,8 +19,8 @@ func InitAPI() {
 	group := e.Group("/v1.0.0")
 	// Routes
 	group.GET("/reprocessing/:systemId/pending", getPendingReprocessing)
-	group.POST("/reprocess/top", reprocessTop)
-	group.POST("/reprocess/top/skip", reprocessTop)
+	group.POST("/reprocessing/:id/approve", approveReprocessing)
+	//group.POST("/reprocess/top/skip", reprocessTop)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
 }
