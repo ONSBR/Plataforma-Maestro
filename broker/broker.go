@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/PMoneda/carrot"
+	"github.com/labstack/gommon/log"
 )
 
 var builder *carrot.Builder
@@ -68,4 +69,23 @@ func Init() {
 	pickerConn, _ := carrot.NewBrokerClient(&config)
 	picker = carrot.NewPicker(pickerConn)
 	fmt.Println("Waiting Events")
+}
+
+func DeclareQueue(exchange, queue, routingKey string) error {
+	log.Info(fmt.Sprintf("creating queue %s", queue))
+
+	if err := builder.DeclareTopicExchange(exchange); err != nil {
+		log.Error("Aborting reprocessing cannot declare exchange on rabbitmq: ", err)
+		return err
+	}
+	if err := builder.DeclareQueue(queue); err != nil {
+		log.Error("Aborting reprocessing cannot declare a queue on rabbitmq: ", err)
+		return err
+	}
+
+	if err := builder.BindQueueToExchange(queue, exchange, routingKey); err != nil {
+		log.Error("Aborting reprocessing cannot bind queue to a exchange: ", err)
+		return err
+	}
+	return nil
 }

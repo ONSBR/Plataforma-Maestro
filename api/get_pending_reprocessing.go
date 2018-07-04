@@ -8,7 +8,7 @@ import (
 )
 
 func getPendingReprocessing(c echo.Context) error {
-	j, err := sdk.GetDocument("reprocessing_pending", map[string]string{"systemId": c.Param("systemId"), "status": "pending_approval"})
+	j, err := sdk.GetDocument("reprocessing", map[string]string{"systemId": c.Param("systemId"), "status": "pending_approval"})
 	data := make([]map[string]interface{}, 0)
 	json.Unmarshal([]byte(j), &data)
 	if err != nil {

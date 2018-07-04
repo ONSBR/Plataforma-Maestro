@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/ONSBR/Plataforma-EventManager/domain"
+	"github.com/ONSBR/Plataforma-Maestro/etc"
 )
 
 //Reprocessing handle data from discovery service
@@ -20,4 +21,12 @@ type ReprocessingStatus struct {
 	User      string `json:"user,omitempty"`
 	Status    string `json:"status"`
 	Timestamp string `json:"timestamp"`
+}
+
+//NewReprocessingStatus creates a new status object to reprocessing
+func NewReprocessingStatus(status string) ReprocessingStatus {
+	return ReprocessingStatus{
+		Status:    status,
+		Timestamp: etc.GetStrTimestamp(),
+	}
 }

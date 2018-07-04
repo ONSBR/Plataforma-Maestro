@@ -27,7 +27,7 @@ func approveReprocessing(c echo.Context) error {
 	if err := c.Bind(approver); err != nil {
 		return err
 	}
-	j, err := sdk.GetDocument("reprocessing_pending", map[string]string{"id": c.Param("id"), "status": "pending_approval"})
+	j, err := sdk.GetDocument("reprocessing", map[string]string{"id": c.Param("id"), "status": "pending_approval"})
 	data := make([]models.Reprocessing, 0)
 	json.Unmarshal([]byte(j), &data)
 	if err != nil {
@@ -39,7 +39,7 @@ func approveReprocessing(c echo.Context) error {
 	status := "approved"
 	data[0].Status = status
 	data[0].HistoryStatus = append(data[0].HistoryStatus, models.ReprocessingStatus{User: approver.User, Status: status, Timestamp: etc.GetStrTimestamp()})
-	if err := sdk.ReplaceDocument("reprocessing_pending", map[string]string{"id": c.Param("id"), "status": "pending_approval"}, data[0]); err != nil {
+	if err := sdk.ReplaceDocument("reprocessing", map[string]string{"id": c.Param("id"), "status": "pending_approval"}, data[0]); err != nil {
 		return err
 	}
 	go actions.DispatchReprocessing(data[0])

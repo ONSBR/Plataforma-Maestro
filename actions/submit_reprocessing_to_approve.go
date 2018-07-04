@@ -42,7 +42,7 @@ func SubmitReprocessingToApprove(context *carrot.MessageContext, persistEvent *d
 		return
 	}
 	reprocessing.Events = events
-	err = sdk.SaveDocument("reprocessing_pending", reprocessing)
+	err = sdk.SaveDocument("reprocessing", reprocessing)
 	if err != nil {
 		errorTreat(err)
 		return
