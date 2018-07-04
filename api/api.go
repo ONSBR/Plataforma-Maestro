@@ -15,12 +15,19 @@ func InitAPI() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-
+	e.HTTPErrorHandler = errorHandler
 	group := e.Group("/v1.0.0")
 	// Routes
-	group.GET("/reprocessing/pending", getPendingReprocessing)
+	group.GET("/reprocessing/:systemId/pending", getPendingReprocessing)
 	group.POST("/reprocess/top", reprocessTop)
 	group.POST("/reprocess/top/skip", reprocessTop)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
+}
+
+func errorHandler(err error, c echo.Context) {
+	if errJ := c.JSON(400, map[string]string{"status": "400", "message": err.Error()}); errJ != nil {
+		c.Logger().Error(err)
+	}
+	c.Logger().Error(err)
 }

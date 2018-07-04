@@ -40,7 +40,9 @@ func main() {
 	builder := carrot.NewBuilder(conn)
 	builder.DeclareTopicExchange("reprocessing_stack")
 	builder.DeclareQueue("persist.exception_q")
+	builder.DeclareQueue("create.reprocessing.exception_q")
 	builder.BindQueueToExchange("persist.exception_q", "reprocessing_stack", "#.persist_error.#")
+	builder.BindQueueToExchange("create.reprocessing.exception_q", "reprocessing_stack", "#.create_reprocessing_error.#")
 
 	subConn, _ := carrot.NewBrokerClient(&config)
 

@@ -1,8 +1,21 @@
 package api
 
-import "github.com/labstack/echo"
+import (
+	"encoding/json"
+
+	"github.com/ONSBR/Plataforma-EventManager/sdk"
+	"github.com/labstack/echo"
+)
 
 func getPendingReprocessing(c echo.Context) error {
-	c.String(200, "ok")
-	return nil
+	j, err := sdk.GetDocument("reprocessing_pending", map[string]string{"systemId": c.Param("systemId")})
+	data := make([]map[string]interface{}, 0)
+	json.Unmarshal([]byte(j), &data)
+	if err != nil {
+		return err
+	}
+	for _, item := range data {
+		delete(item, "_id")
+	}
+	return c.JSON(200, data)
 }

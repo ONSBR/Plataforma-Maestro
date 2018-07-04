@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"sync"
-	"time"
 
 	"github.com/ONSBR/Plataforma-Maestro/actions"
 	"github.com/ONSBR/Plataforma-Maestro/etc"
@@ -41,11 +40,13 @@ func handlePersistBySolution(channel chan *carrot.MessageContext) {
 		if eventParsed, err := etc.GetEventFromMessage(context); err == nil {
 			instances, err := actions.GetReprocessingInstances(eventParsed)
 			if err == nil && hasReprocessing(instances) {
-				err = actions.SubmitReprocessingToApprove(context, eventParsed, instances)
+				etc.LogDuration("submiting to approve reprocessing", func() {
+					err = actions.SubmitReprocessingToApprove(context, eventParsed, instances)
+				})
 			} else if err == nil {
-				start := time.Now()
-				err = actions.ProceedToCommit(context)
-				log.Info(time.Now().Sub(start))
+				etc.LogDuration("commiting data", func() {
+					err = actions.ProceedToCommit(context)
+				})
 			}
 		}
 		if err != nil {
