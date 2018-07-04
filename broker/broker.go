@@ -14,6 +14,8 @@ var subscriber *carrot.Subscriber
 
 var publisher *carrot.Publisher
 
+var picker *carrot.Picker
+
 //GetBuilder from current broker instance
 func GetBuilder() *carrot.Builder {
 	return builder
@@ -27,6 +29,11 @@ func GetSubscriber() *carrot.Subscriber {
 //GetPublisher returns publisher of broker
 func GetPublisher() *carrot.Publisher {
 	return publisher
+}
+
+//GetPicker returns picker of broker
+func GetPicker() *carrot.Picker {
+	return picker
 }
 
 //Init broker
@@ -57,5 +64,8 @@ func Init() {
 
 	pubConn, _ := carrot.NewBrokerClient(&config)
 	publisher = carrot.NewPublisher(pubConn)
+
+	pickerConn, _ := carrot.NewBrokerClient(&config)
+	picker = carrot.NewPicker(pickerConn)
 	fmt.Println("Waiting Events")
 }

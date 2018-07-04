@@ -28,8 +28,8 @@ func (get *Picker) Pick(queue string) (*MessageContext, bool, error) {
 	}
 }
 
-//Newicker creates a new broker queue picker
-func Newicker(client *BrokerClient) *Picker {
+//NewPicker creates a new broker queue picker
+func NewPicker(client *BrokerClient) *Picker {
 	picker := new(Picker)
 	picker.client = client
 	return picker
