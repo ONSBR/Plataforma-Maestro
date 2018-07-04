@@ -21,7 +21,6 @@ func SubmitReprocessingToApprove(context *carrot.MessageContext, persistEvent *d
 		}
 		return
 	}
-
 	reprocessing := models.Reprocessing{
 		PendingEvent: persistEvent,
 		SystemID:     persistEvent.SystemID,
@@ -41,6 +40,15 @@ func SubmitReprocessingToApprove(context *carrot.MessageContext, persistEvent *d
 	}
 	reprocessing.Events = events
 	err = sdk.SaveDocument("reprocessing_pending", reprocessing)
+	if err != nil {
+		errorTreat(err)
+		return
+	}
+	err = sdk.UpdateProcessInstance(persistEvent.InstanceID, "reprocessing_pending_approval")
+	if err != nil {
+		errorTreat(err)
+		return
+	}
 	context.Ack()
 	return
 }
