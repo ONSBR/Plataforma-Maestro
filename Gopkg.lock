@@ -7,8 +7,7 @@
   packages = [
     "env",
     "models/exceptions",
-    "sdk/apicore",
-    "sdk/eventmanager"
+    "sdk/apicore"
   ]
   revision = "73037effc2f8514deaa67bb6a375ceb727b2a2dd"
 
@@ -28,7 +27,7 @@
   branch = "master"
   name = "github.com/PMoneda/http"
   packages = ["."]
-  revision = "f89b0e7a09b085ad3a9939614812fefa0fe827bd"
+  revision = "0c376f52d4deeefd48a54c72c7dc0440a8abb293"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -149,6 +148,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a6d89643729b01cf70158e2491eeef289f5a2091054ac85fb555c4af1a36e454"
+  inputs-digest = "30181312f4fc03ed1270fcb5c8a8e98e6335b590dc00ba6edcfdae5f3289c7a1"
   solver-name = "gps-cdcl"
   solver-version = 1
