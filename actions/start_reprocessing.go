@@ -81,6 +81,7 @@ func StartReprocessing(reprocessing models.Reprocessing) {
 	if !proceed {
 		return
 	}
+	defer context.Nack(true)
 
 	if err := SetStatusReprocessing(reprocessing, models.NewReprocessingStatus("running")); err != nil {
 		log.Error("cannot update reprocessing on process memory: ", err)
@@ -99,6 +100,21 @@ func StartReprocessing(reprocessing models.Reprocessing) {
 		return
 	}
 
+	if err := splitReprocessing(reprocessing); err != nil {
+		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
+		if err := SetStatusReprocessing(reprocessing, models.NewReprocessingStatus("aborted:split-events-failure")); err != nil {
+			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
+		}
+		if err := context.RedirectTo("reprocessing", fmt.Sprintf("error_%s", reprocessing.ID)); err != nil {
+			log.Error(fmt.Sprintf("cannot redirect reprocessing %s to error queue: ", reprocessing.ID), err)
+		}
+	}
+
+}
+
+func splitReprocessing(reprocessing models.Reprocessing) error {
+	//TODO publish all initial events to events queue
+	return nil
 }
 
 func pickReprocessing(id string) (*carrot.MessageContext, bool) {
