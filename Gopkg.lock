@@ -14,14 +14,18 @@
 [[projects]]
   branch = "feature/reprocessamento"
   name = "github.com/ONSBR/Plataforma-EventManager"
-  packages = ["domain"]
+  packages = [
+    "domain",
+    "infra",
+    "sdk"
+  ]
   revision = "1876d2631c22e9061cdfa4b8e35102c4e4195f91"
 
 [[projects]]
   branch = "master"
   name = "github.com/PMoneda/carrot"
   packages = ["."]
-  revision = "247cc7afaa57e548e2f77d0e69953d11c4f5a2b2"
+  revision = "5f92fc124e5f2e1d977138827f64b07433bcf06e"
 
 [[projects]]
   branch = "master"
@@ -148,6 +152,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "30181312f4fc03ed1270fcb5c8a8e98e6335b590dc00ba6edcfdae5f3289c7a1"
+  inputs-digest = "32d4b28deff8aa93ef4d6ccd8f74e2dee2c5a7bbf4148ca450c2b1531dafb137"
   solver-name = "gps-cdcl"
   solver-version = 1
