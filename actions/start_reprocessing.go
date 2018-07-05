@@ -114,7 +114,6 @@ func splitReprocessing(reprocessing models.Reprocessing) error {
 			return err
 		}
 	}
-	log.Debug("")
 	return nil
 }
 
