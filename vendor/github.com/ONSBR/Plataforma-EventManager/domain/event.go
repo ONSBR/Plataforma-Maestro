@@ -23,6 +23,8 @@ type Event struct {
 	Branch       string                 `json:"branch"`
 	SystemID     string                 `json:"systemId,omitempty"`
 	Name         string                 `json:"name,omitempty"`
+	Version      string                 `json:"version,omitempty"`
+	Image        string                 `json:"image,omitempty"`
 	Tag          string                 `json:"tag"`
 	AppOrigin    string                 `json:"appOrigin,omitempty"`
 	Owner        string                 `json:"owner,omitempty"`
@@ -30,8 +32,16 @@ type Event struct {
 	Scope        string                 `json:"scope,omitempty"`
 	Payload      map[string]interface{} `json:"payload,omitempty"`
 	Reproduction map[string]interface{} `json:"reproduction,omitempty"`
-	Reprocessing map[string]interface{} `json:"reprocessing,omitempty"`
+	Reprocessing *ReprocessingInfo      `json:"reprocessing,omitempty"`
 	Bindings     []*Operation           `json:"-"`
+}
+
+//ReprocessingInfo store all reprocessing information on event
+type ReprocessingInfo struct {
+	ID         string `json:"id,omitempty"`
+	InstanceID string `json:"instance_id,omitempty"`
+	SystemID   string `json:"system_id,omitempty"`
+	Image      string `json:"image,omitempty"`
 }
 
 //NewEvent creates a new Event Instance

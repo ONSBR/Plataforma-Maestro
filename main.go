@@ -9,6 +9,7 @@ import (
 	"github.com/ONSBR/Plataforma-Maestro/broker"
 	"github.com/ONSBR/Plataforma-Maestro/handlers"
 	"github.com/PMoneda/carrot"
+	"github.com/labstack/gommon/log"
 )
 
 var local bool
@@ -23,6 +24,7 @@ func main() {
 	logo()
 
 	flag.Parse()
+	log.SetLevel(log.DEBUG)
 
 	if local {
 		os.Setenv("RABBITMQ_HOST", "localhost")

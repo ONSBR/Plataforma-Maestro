@@ -60,6 +60,7 @@ func getEventsFromInstances(context *carrot.MessageContext, instances []string) 
 	events := make([]*domain.Event, len(instances))
 	for i, instance := range instances {
 		evt, err := processmemory.GetEventByInstance(instance)
+		log.Info(evt.InstanceID)
 		if err != nil {
 			return nil, err
 		}

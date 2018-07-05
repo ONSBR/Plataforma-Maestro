@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
+
+	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
 
 	"github.com/PMoneda/carrot"
@@ -29,67 +32,43 @@ func DispatchReprocessing(reprocessing models.Reprocessing) {
 		cache = make(map[string]bool)
 	})
 	if _, ok := cache[reprocessing.SystemID]; !ok {
-		if err := mountReprocessingInfra(reprocessing); err != nil {
+		if err := MountReprocessingInfraBySystem(reprocessing.SystemID); err != nil {
 			log.Error(fmt.Sprintf("cannot mount reprocessing infra to system %s: ", reprocessing.SystemID), err)
 			return
 		}
 	}
-	data, _ := json.Marshal(reprocessing)
 	publisher := broker.GetPublisher()
-	publisher.Publish("reprocessing", reprocessing.SystemID, carrot.Message{
-		ContentType: "application/json",
-		Data:        data,
-		Encoding:    "utf-8",
-	})
+	msg, _ := broker.GetMessageFrom(reprocessing)
+	publisher.Publish("reprocessing", reprocessing.SystemID, msg)
 
-	go StartReprocessing(reprocessing)
-}
-
-func mountReprocessingInfra(reprocessing models.Reprocessing) error {
-	defer declareMut.Unlock()
-	declareMut.Lock()
-	queue := fmt.Sprintf(reprocessingQueue, reprocessing.SystemID)
-	routingKey := fmt.Sprintf("#.%s.#", reprocessing.SystemID)
-	if err := broker.DeclareQueue("reprocessing", queue, routingKey); err != nil {
-		return err
-	}
-	queue = fmt.Sprintf(reprocessingEventsQueue, reprocessing.SystemID)
-	routingKey = fmt.Sprintf("#.%s.#", reprocessing.SystemID)
-	if err := broker.DeclareQueue("reprocessing-events", queue, routingKey); err != nil {
-		return err
-	}
-
-	queue = fmt.Sprintf(reprocessingEventsControlQueue, reprocessing.SystemID)
-	routingKey = fmt.Sprintf("#.%s.#", reprocessing.SystemID)
-	if err := broker.DeclareQueue("reprocessing-events-control", queue, routingKey); err != nil {
-		return err
-	}
-
-	queue = fmt.Sprintf(reprocessingErrorQueue, reprocessing.SystemID)
-	routingKey = fmt.Sprintf("#.error_%s.#", reprocessing.SystemID)
-	if err := broker.DeclareQueue("reprocessing", queue, routingKey); err != nil {
-		return err
-	}
-	return nil
+	go StartReprocessing(reprocessing.SystemID)
 }
 
 //StartReprocessing picks first reprocessing in queue
-func StartReprocessing(reprocessing models.Reprocessing) {
+func StartReprocessing(systemID string) {
 
+	log.Debug("starting reprocessing")
 	//Start reprocessing process
-	context, proceed := pickReprocessing(reprocessing.ID)
+	context, proceed := pickReprocessing(systemID)
 	if !proceed {
+		log.Debug("reprocessing queue is empty")
 		return
 	}
 	defer context.Nack(true)
+	reprocessing := models.Reprocessing{}
+	err := json.Unmarshal(context.Message.Data, &reprocessing)
+	if err != nil {
+		log.Error(fmt.Sprintf("cannot unmarshall reprocessing for system %s: ", systemID), err)
+		return
+	}
 
+	log.Debug("set reprocessing to running")
 	if err := SetStatusReprocessing(reprocessing, models.NewReprocessingStatus("running")); err != nil {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return
 	}
-
-	err := appdomain.PersistEntitiesByInstance(reprocessing.SystemID, reprocessing.PendingEvent.InstanceID)
-	if err != nil {
+	log.Debug("save pending commit to domain")
+	if err := appdomain.PersistEntitiesByInstance(reprocessing.SystemID, reprocessing.PendingEvent.InstanceID); err != nil {
 		log.Error("cannot persist pending event on domain: ", err)
 		if err := SetStatusReprocessing(reprocessing, models.NewReprocessingStatus("aborted:persist-domain-failure")); err != nil {
 			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
@@ -99,6 +78,7 @@ func StartReprocessing(reprocessing models.Reprocessing) {
 		}
 		return
 	}
+	log.Debug("splitting reprocessing events")
 
 	if err := splitReprocessing(reprocessing); err != nil {
 		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
@@ -113,7 +93,28 @@ func StartReprocessing(reprocessing models.Reprocessing) {
 }
 
 func splitReprocessing(reprocessing models.Reprocessing) error {
-	//TODO publish all initial events to events queue
+	for _, event := range reprocessing.Events {
+		originalInstance := event.InstanceID
+		event.SystemID = reprocessing.SystemID
+		event.InstanceID = ""
+		event.Tag = ""
+		event.Scope = "reprocessing"
+		event.Reprocessing = new(domain.ReprocessingInfo)
+		event.Reprocessing.ID = reprocessing.ID
+		event.Reprocessing.InstanceID = originalInstance
+		event.Reprocessing.Image = event.Image
+		event.Reprocessing.SystemID = reprocessing.SystemID
+	}
+	log.Debug("publishing events to reprocessing events")
+	publisher := broker.GetPublisher()
+	for _, event := range reprocessing.Events {
+		msg, _ := broker.GetMessageFrom(event)
+		if err := publisher.Publish("reprocessing-events", fmt.Sprintf("%s.control_%s", event.SystemID, event.SystemID), msg); err != nil {
+			log.Error(fmt.Sprintf("failure to publish event to reprocessing-events exchange "), err)
+			return err
+		}
+	}
+	log.Debug("")
 	return nil
 }
 
@@ -126,8 +127,35 @@ func pickReprocessing(id string) (*carrot.MessageContext, bool) {
 		return nil, false
 	}
 	if isReprocessing {
-		context.Nack(true)
-		return nil, false
+		//give back reprocessing message to queue and proceed
+		return context, true
 	}
-	return nil, true
+	return nil, false
+}
+
+func getOperationFromEvent(event *domain.Event) (*domain.OperationInstance, error) {
+	log.Info(event.InstanceID, " ", event.Name)
+	operations := make([]*domain.OperationInstance, 0)
+	err := apicore.Query(apicore.Filter{
+		Entity: "operationInstance",
+		Map:    "core",
+		Name:   "byInstanceIdEventName",
+		Params: []apicore.Param{
+			apicore.Param{
+				Key:   "processInstanceId",
+				Value: event.InstanceID,
+			},
+			apicore.Param{
+				Key:   "eventName",
+				Value: event.Name,
+			},
+		},
+	}, &operations)
+	if err != nil {
+		return nil, err
+	}
+	if len(operations) > 0 {
+		return operations[0], nil
+	}
+	return nil, fmt.Errorf(fmt.Sprintf("operation instance for event %s and instance %s not found", event.Name, event.InstanceID))
 }

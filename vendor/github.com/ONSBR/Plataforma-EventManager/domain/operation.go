@@ -9,3 +9,16 @@ type Operation struct {
 	ProcessID     string `json:"processId"`
 	Reprocessable bool   `json:"reprocessable"`
 }
+
+//OperationInstance hanlde each instance of an operation executed on platform
+type OperationInstance struct {
+	ProcessID         string `json:"processId,omitempty"`
+	SystemID          string `json:"systemId,omitempty"`
+	ProcessInstanceID string `json:"processInstanceId,omitempty"`
+	OperationID       string `json:"operationId,omitempty"`
+	Status            string `json:"status,omitempty"`
+	MustCommit        bool   `json:"mustCommit,omitempty"`
+	Image             string `json:"image,omitempty"`
+	Version           string `json:"version,omitempty"`
+	EventName         string `json:"eventName,omitempty"`
+}

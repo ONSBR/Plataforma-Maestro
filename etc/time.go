@@ -11,7 +11,7 @@ import (
 func LogDuration(label string, callback func()) {
 	begin := time.Now()
 	callback()
-	log.Info(fmt.Sprintf("execution time of %s: ", label), time.Now().Sub(begin))
+	log.Debug(fmt.Sprintf("execution time of %s: ", label), time.Now().Sub(begin))
 }
 
 //GetStrTimestamp returns timestamp as string

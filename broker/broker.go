@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -72,7 +73,7 @@ func Init() {
 }
 
 func DeclareQueue(exchange, queue, routingKey string) error {
-	log.Info(fmt.Sprintf("creating queue %s", queue))
+	log.Debug(fmt.Sprintf("creating queue %s", queue))
 
 	if err := builder.DeclareTopicExchange(exchange); err != nil {
 		log.Error("Aborting reprocessing cannot declare exchange on rabbitmq: ", err)
@@ -87,5 +88,23 @@ func DeclareQueue(exchange, queue, routingKey string) error {
 		log.Error("Aborting reprocessing cannot bind queue to a exchange: ", err)
 		return err
 	}
+
+	if err := builder.UpdateTopicPermission(os.Getenv("RABBITMQ_USERNAME"), exchange); err != nil {
+		log.Error("Aborting reprocessing cannot set topic permission to exchange: ", err)
+		return err
+	}
 	return nil
+}
+
+//GetMessageFrom returns json message
+func GetMessageFrom(msg interface{}) (carrot.Message, error) {
+	bb, err := json.Marshal(msg)
+	if err != nil {
+		return carrot.Message{}, err
+	}
+	return carrot.Message{
+		ContentType: "application/json",
+		Data:        bb,
+		Encoding:    "utf-8",
+	}, nil
 }
