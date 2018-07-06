@@ -5,6 +5,10 @@ import (
 	"github.com/ONSBR/Plataforma-Maestro/etc"
 )
 
+const Running string = "running"
+const PendingApproval string = "pending_approval"
+const Skipped string = "skipped"
+
 //Reprocessing handle data from discovery service
 type Reprocessing struct {
 	SystemID      string               `json:"systemId,omitempty"`
@@ -24,19 +28,19 @@ type ReprocessingStatus struct {
 }
 
 func (rep *Reprocessing) PendingApproval() {
-	rep.SetStatus("", "pending_approval")
+	rep.SetStatus("", PendingApproval)
 }
 
 func (rep *Reprocessing) IsPendingApproval() bool {
-	return rep.Status == "pending_approval"
+	return rep.Status == PendingApproval
 }
 
 func (rep *Reprocessing) Skipped(owner string) {
-	rep.SetStatus(owner, "skipped")
+	rep.SetStatus(owner, Skipped)
 }
 
 func (rep *Reprocessing) Running() {
-	rep.SetStatus("", "running")
+	rep.SetStatus("", Running)
 }
 
 //SetStatus on reprocessing

@@ -28,7 +28,7 @@ Fluxo-03: Aprovar um reprocessamento para início imediato
 - [x] Implementar o serviço que permita ao admin e iniciar um reprocessamento
 - [x] Implementar o serviço que permita ao admin ignorar um reprocessamento e por consequência ignorar um commit
 - [x] Publicar instancias que deverão ser reprocessadas na fila de reprocessamento
-- [ ] API de check de bloqueio da Plataforma por sistema
+- [x] API de check de bloqueio da Plataforma por sistema
 - [ ] Bloquear as execuções de persistência enquanto um reprocessamento estiver em execução
 - [ ] Faz o bloqueio de novos eventos no EventManager quando um reprocessamento está em execução
 - [ ] Incrementa a fila de reprocessamento com novos eventos (Reprocessamento em Cascata)

@@ -21,6 +21,7 @@ func InitAPI() {
 	group.GET("/reprocessing/:systemId/pending", getPendingReprocessing)
 	group.POST("/reprocessing/:id/approve", approveReprocessing)
 	group.POST("/reprocessing/:id/skip", reprocessingSkip)
+	group.GET("/gateway/:systemId/proceed", eventGatekeeper)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
 }

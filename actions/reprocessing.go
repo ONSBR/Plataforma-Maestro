@@ -37,11 +37,27 @@ func GetReprocessing(reprocessingID string) (*models.Reprocessing, error) {
 		return nil, err
 	}
 	rep := make([]*models.Reprocessing, 1)
-	json.Unmarshal([]byte(sjson), &rep)
+	err = json.Unmarshal([]byte(sjson), &rep)
+	if err != nil {
+		return nil, err
+	}
 	if len(rep) == 0 {
 		return nil, fmt.Errorf(fmt.Sprintf("no reprocessing found with id %s", reprocessingID))
 	}
 	return rep[0], nil
+}
+
+//GetReprocessingBySystemIDWithStatus return reprocessing with systemId and status from process memory
+func GetReprocessingBySystemIDWithStatus(systemID, status string) ([]*models.Reprocessing, error) {
+	defer statusMut.Unlock()
+	statusMut.Lock()
+	sjson, err := sdk.GetDocument("reprocessing", map[string]string{"systemId": systemID, "status": status})
+	if err != nil {
+		return nil, err
+	}
+	rep := make([]*models.Reprocessing, 0)
+	err = json.Unmarshal([]byte(sjson), &rep)
+	return rep, err
 }
 
 //GetStatusOfReprocessing return status of reprocessing from process memory
