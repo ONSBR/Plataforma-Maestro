@@ -28,7 +28,11 @@ func GetDocument(collection string, query map[string]string) (string, error) {
 		queryString += fmt.Sprintf("%s=%s&", k, v)
 	}
 	url := fmt.Sprintf("%s%s?%sapp_origin=event_manager", getProcessMemoryUrl(), collection, queryString)
-	return http.Get(url)
+	response, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	return string(response.Body), nil
 }
 
 //ReplaceDocument update full document based on query and collection

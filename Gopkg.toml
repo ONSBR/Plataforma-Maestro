@@ -25,9 +25,13 @@
 #   unused-packages = true
 
 
-[prune]
-  go-tests = true
-  unused-packages = true
+[[constraint]]
+  branch = "feature/reprocessamento"
+  name = "github.com/ONSBR/Plataforma-Deployer"
+
+[[constraint]]
+  branch = "feature/reprocessamento"
+  name = "github.com/ONSBR/Plataforma-EventManager"
 
 [[constraint]]
   branch = "master"
@@ -38,17 +42,21 @@
   name = "github.com/PMoneda/http"
 
 [[constraint]]
-  name = "github.com/smartystreets/goconvey"
-  version = "1.6.3"
-
-[[constraint]]
-  branch = "feature/reprocessamento"
-  name = "github.com/ONSBR/Plataforma-Deployer"
-
-[[constraint]]
-  branch = "feature/reprocessamento"
-  name = "github.com/ONSBR/Plataforma-EventManager"
+  name = "github.com/google/uuid"
+  version = "0.2.0"
 
 [[constraint]]
   name = "github.com/labstack/echo"
   version = "3.3.5"
+
+[[constraint]]
+  name = "github.com/labstack/gommon"
+  version = "0.2.6"
+
+[[constraint]]
+  name = "github.com/smartystreets/goconvey"
+  version = "1.6.3"
+
+[prune]
+  go-tests = true
+  unused-packages = true

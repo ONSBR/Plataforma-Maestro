@@ -5,7 +5,6 @@ import (
 
 	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
 
-	"github.com/ONSBR/Plataforma-Deployer/models/exceptions"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-Maestro/sdk/discovery"
 )
@@ -13,10 +12,10 @@ import (
 //GetReprocessingInstances from discovery service based on perist event
 func GetReprocessingInstances(event *domain.Event) ([]string, error) {
 	if event.InstanceID == "" {
-		return nil, exceptions.NewInvalidArgumentException(fmt.Errorf("event %s should have instance id", event.Name))
+		return nil, fmt.Errorf("event %s should have instance id", event.Name)
 	}
 	if event.SystemID == "" {
-		return nil, exceptions.NewInvalidArgumentException(fmt.Errorf("event %s should have system id", event.Name))
+		return nil, fmt.Errorf("event %s should have system id", event.Name)
 	}
 	entities, err := appdomain.GetEntitiesByProcessInstance(event.SystemID, event.InstanceID)
 	if err != nil {

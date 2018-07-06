@@ -75,7 +75,7 @@ func GetOpenBranchesBySystem(systemID string) ([]Branch, error) {
 		return nil, infra.NewArgumentException(err.Error())
 	} else {
 		branches := make([]Branch, 0, 0)
-		if err := json.Unmarshal([]byte(response), &branches); err != nil {
+		if err := json.Unmarshal(response.Body, &branches); err != nil {
 			return nil, infra.NewComponentException(err.Error())
 		}
 		return branches, err

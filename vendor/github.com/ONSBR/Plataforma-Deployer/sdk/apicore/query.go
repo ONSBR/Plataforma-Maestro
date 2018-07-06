@@ -1,11 +1,7 @@
 package apicore
 
-import (
-	"github.com/ONSBR/Plataforma-Deployer/models/exceptions"
-)
-
 //FindByID finds entity by ID on apicore
-func FindByID(entity, id string, response interface{}) *exceptions.Exception {
+func FindByID(entity, id string, response interface{}) error {
 	filter := Filter{
 		Entity: entity,
 		Map:    "core",
@@ -20,7 +16,7 @@ func FindByID(entity, id string, response interface{}) *exceptions.Exception {
 }
 
 //FindBySystemID finds entity by SystemID on apicore
-func FindBySystemID(entity, id string, response interface{}) *exceptions.Exception {
+func FindBySystemID(entity, id string, response interface{}) error {
 	filter := Filter{
 		Entity: entity,
 		Map:    "core",
@@ -35,7 +31,7 @@ func FindBySystemID(entity, id string, response interface{}) *exceptions.Excepti
 }
 
 //FindByProcessID finds entity by ProcessID on apicore
-func FindByProcessID(entity, id string, response interface{}) *exceptions.Exception {
+func FindByProcessID(entity, id string, response interface{}) error {
 	filter := Filter{
 		Entity: entity,
 		Map:    "core",

@@ -7,7 +7,6 @@ import (
 
 	"github.com/PMoneda/http"
 
-	"github.com/ONSBR/Plataforma-Deployer/models/exceptions"
 	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
 )
 
@@ -25,11 +24,11 @@ func GetEntitiesByProcessInstance(systemID, processInstance string) (EntitiesLis
 
 	resp, errR := http.Get(url)
 	if errR != nil {
-		return nil, exceptions.NewIntegrationException(errR)
+		return nil, errR
 	}
-	errJ := json.Unmarshal([]byte(resp), &list)
+	errJ := json.Unmarshal(resp.Body, &list)
 	if errJ != nil {
-		return nil, exceptions.NewInvalidArgumentException(errJ)
+		return nil, errJ
 	}
 	return list, nil
 }
@@ -43,8 +42,8 @@ func PersistEntitiesByInstance(systemID, instanceID string) error {
 	url := fmt.Sprintf("%s/instance/%s/persist", domainHost, instanceID)
 	if resp, err := http.Post(url, nil); err != nil {
 		return err
-	} else if !strings.Contains(resp, "ok") {
-		return exceptions.NewIntegrationException(fmt.Errorf("%s", resp))
+	} else if !strings.Contains(string(resp.Body), "ok") {
+		return fmt.Errorf("%s", resp)
 	}
 	return nil
 }
@@ -66,11 +65,11 @@ func getDomainHost(systemID string) (string, error) {
 	}
 	err := apicore.Query(filter, &result)
 	if err != nil {
-		return "", exceptions.NewComponentException(fmt.Errorf("%s", err.Error()))
+		return "", fmt.Errorf("%s", err.Error())
 	}
 	if len(result) > 0 {
 		obj := result[0]
 		return fmt.Sprintf("http://%s:%d", obj["host"], uint(obj["port"].(float64))), nil
 	}
-	return "", exceptions.NewInvalidArgumentException(fmt.Errorf("no app found for %s id", systemID))
+	return "", fmt.Errorf("no app found for %s id", systemID)
 }

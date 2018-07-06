@@ -6,10 +6,9 @@
   name = "github.com/ONSBR/Plataforma-Deployer"
   packages = [
     "env",
-    "models/exceptions",
     "sdk/apicore"
   ]
-  revision = "73037effc2f8514deaa67bb6a375ceb727b2a2dd"
+  revision = "d83ca7d401322df4962c0e6ae27d7436bb9b2a03"
 
 [[projects]]
   branch = "feature/reprocessamento"
@@ -19,7 +18,7 @@
     "infra",
     "sdk"
   ]
-  revision = "b9491a2245805b6c669e6b171a7c1fa20da80ab7"
+  revision = "11ca13fd570f397491f284f32219c2d8d7f8f4c8"
 
 [[projects]]
   branch = "master"
@@ -31,7 +30,7 @@
   branch = "master"
   name = "github.com/PMoneda/http"
   packages = ["."]
-  revision = "0c376f52d4deeefd48a54c72c7dc0440a8abb293"
+  revision = "07abd5e307d947064debbb4f0e945a2aa4087774"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -147,11 +146,11 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "7138fd3d9dc8335c567ca206f4333fb75eb05d56"
+  revision = "ce36f3865eeb42541ce3f87f32f8462c5687befa"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "32d4b28deff8aa93ef4d6ccd8f74e2dee2c5a7bbf4148ca450c2b1531dafb137"
+  inputs-digest = "0de403542835a18cea8964011826ebc95037fa865855a4a97bdffef0b4392ed2"
   solver-name = "gps-cdcl"
   solver-version = 1

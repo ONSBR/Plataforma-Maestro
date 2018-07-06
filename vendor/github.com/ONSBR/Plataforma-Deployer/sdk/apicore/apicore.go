@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ONSBR/Plataforma-Deployer/env"
-	"github.com/ONSBR/Plataforma-Deployer/models/exceptions"
 	"github.com/PMoneda/http"
 )
 
@@ -14,32 +13,32 @@ func getURL() string {
 }
 
 //Persist data on APICORE
-func Persist(entities interface{}) *exceptions.Exception {
+func Persist(entities interface{}) error {
 	_, err := http.Post(fmt.Sprintf("%s/core/persist", getURL()), entities)
 	if err != nil {
-		return exceptions.NewIntegrationException(err)
+		return err
 	}
 	return nil
 }
 
 //PersistOne single entity to API Core
-func PersistOne(entity ...interface{}) *exceptions.Exception {
+func PersistOne(entity ...interface{}) error {
 	return Persist(entity)
 }
 
 //Query data on apicore
-func Query(filter Filter, response interface{}) *exceptions.Exception {
+func Query(filter Filter, response interface{}) error {
 	url := fmt.Sprintf("%s/%s/%s?filter=%s", getURL(), filter.Map, filter.Entity, filter.Name)
 	for _, param := range filter.Params {
 		url += fmt.Sprintf("&%s=%s", param.Key, param.Value)
 	}
 	resp, err := http.Get(url)
 	if err != nil {
-		return exceptions.NewIntegrationException(err)
+		return err
 	}
-	err = json.Unmarshal([]byte(resp), response)
+	err = json.Unmarshal(resp.Body, response)
 	if err != nil {
-		return exceptions.NewComponentException(err)
+		return err
 	}
 	return nil
 }
