@@ -80,7 +80,7 @@ func StartReprocessing(systemID string) {
 	}
 	log.Debug("splitting reprocessing events")
 
-	if err := splitReprocessing(reprocessing); err != nil {
+	if err := SplitReprocessingIntoEvents(reprocessing); err != nil {
 		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
 		if err := SetStatusReprocessing(reprocessing, models.NewReprocessingStatus("aborted:split-events-failure")); err != nil {
 			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
@@ -90,31 +90,6 @@ func StartReprocessing(systemID string) {
 		}
 	}
 
-}
-
-func splitReprocessing(reprocessing models.Reprocessing) error {
-	for _, event := range reprocessing.Events {
-		originalInstance := event.InstanceID
-		event.SystemID = reprocessing.SystemID
-		event.InstanceID = ""
-		event.Tag = ""
-		event.Scope = "reprocessing"
-		event.Reprocessing = new(domain.ReprocessingInfo)
-		event.Reprocessing.ID = reprocessing.ID
-		event.Reprocessing.InstanceID = originalInstance
-		event.Reprocessing.Image = event.Image
-		event.Reprocessing.SystemID = reprocessing.SystemID
-	}
-	log.Debug("publishing events to reprocessing events")
-	publisher := broker.GetPublisher()
-	for _, event := range reprocessing.Events {
-		msg, _ := broker.GetMessageFrom(event)
-		if err := publisher.Publish("reprocessing-events", fmt.Sprintf("%s.control_%s", event.SystemID, event.SystemID), msg); err != nil {
-			log.Error(fmt.Sprintf("failure to publish event to reprocessing-events exchange "), err)
-			return err
-		}
-	}
-	return nil
 }
 
 func pickReprocessing(id string) (*carrot.MessageContext, bool) {
