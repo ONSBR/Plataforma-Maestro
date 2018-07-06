@@ -3,7 +3,6 @@ package actions
 import (
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
-	"github.com/ONSBR/Plataforma-Maestro/etc"
 	"github.com/ONSBR/Plataforma-Maestro/models"
 	"github.com/ONSBR/Plataforma-Maestro/sdk/processmemory"
 	"github.com/PMoneda/carrot"
@@ -21,14 +20,8 @@ func SubmitReprocessingToApprove(context *carrot.MessageContext, persistEvent *d
 		}
 		return
 	}
-	status := "pending_approval"
-	reprocessing := models.Reprocessing{
-		PendingEvent:  persistEvent,
-		SystemID:      persistEvent.SystemID,
-		ID:            etc.GetUUID(),
-		Status:        status,
-		HistoryStatus: []models.ReprocessingStatus{models.ReprocessingStatus{Status: status, Timestamp: etc.GetStrTimestamp()}},
-	}
+	reprocessing := models.NewReprocessing(persistEvent)
+	reprocessing.PendingApproval()
 	origin, err := processmemory.GetEventByInstance(persistEvent.InstanceID)
 	if err != nil {
 		errorTreat(err)

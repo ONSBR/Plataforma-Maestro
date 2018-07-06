@@ -1,9 +1,29 @@
 package api
 
-import "github.com/labstack/echo"
+import (
+	"fmt"
+
+	"github.com/ONSBR/Plataforma-Maestro/actions"
+	"github.com/labstack/echo"
+	"github.com/labstack/gommon/log"
+)
 
 //reprocessingSkip skips current top reprocessing and suppress commit
 func reprocessingSkip(c echo.Context) error {
-	c.String(200, "ok")
-	return nil
+	defer lock.Unlock()
+	lock.Lock()
+	approver := new(approve)
+	if err := c.Bind(approver); err != nil {
+		return err
+	}
+	rep, err := actions.GetReprocessing(c.Param("id"))
+	if err != nil {
+		return err
+	}
+	if rep.IsPendingApproval() {
+		rep.Skipped(approver.User)
+		log.Debug(fmt.Sprintf("reprocessing skipped by %s", approver.User))
+		return actions.SaveReprocessing(rep)
+	}
+	return fmt.Errorf("You cannot skip a not pending approval reprocessing")
 }

@@ -10,7 +10,7 @@ import (
 )
 
 //SplitReprocessingIntoEvents takes a reprocessing e publish all events to reprocessing queue
-func SplitReprocessingIntoEvents(reprocessing models.Reprocessing) error {
+func SplitReprocessingIntoEvents(reprocessing *models.Reprocessing) error {
 	for _, event := range reprocessing.Events {
 		originalInstance := event.InstanceID
 		event.SystemID = reprocessing.SystemID

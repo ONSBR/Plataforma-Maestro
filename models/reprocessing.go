@@ -23,6 +23,43 @@ type ReprocessingStatus struct {
 	Timestamp string `json:"timestamp"`
 }
 
+func (rep *Reprocessing) PendingApproval() {
+	rep.SetStatus("", "pending_approval")
+}
+
+func (rep *Reprocessing) IsPendingApproval() bool {
+	return rep.Status == "pending_approval"
+}
+
+func (rep *Reprocessing) Skipped(owner string) {
+	rep.SetStatus(owner, "skipped")
+}
+
+func (rep *Reprocessing) Running() {
+	rep.SetStatus("", "running")
+}
+
+//SetStatus on reprocessing
+func (rep *Reprocessing) SetStatus(owner, status string) {
+	rep.Status = status
+	st := NewReprocessingStatus(rep.Status)
+	st.User = owner
+	if rep.HistoryStatus == nil {
+		rep.HistoryStatus = make([]ReprocessingStatus, 1)
+		rep.HistoryStatus[0] = st
+	} else {
+		rep.HistoryStatus = append(rep.HistoryStatus, st)
+	}
+}
+
+func NewReprocessing(pendingEvent *domain.Event) *Reprocessing {
+	return &Reprocessing{
+		PendingEvent: pendingEvent,
+		SystemID:     pendingEvent.SystemID,
+		ID:           etc.GetUUID(),
+	}
+}
+
 //NewReprocessingStatus creates a new status object to reprocessing
 func NewReprocessingStatus(status string) ReprocessingStatus {
 	return ReprocessingStatus{

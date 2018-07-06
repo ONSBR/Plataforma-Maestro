@@ -20,7 +20,7 @@ func InitAPI() {
 	// Routes
 	group.GET("/reprocessing/:systemId/pending", getPendingReprocessing)
 	group.POST("/reprocessing/:id/approve", approveReprocessing)
-	//group.POST("/reprocess/top/skip", reprocessTop)
+	group.POST("/reprocessing/:id/skip", reprocessingSkip)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
 }

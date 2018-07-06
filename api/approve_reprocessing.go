@@ -12,10 +12,6 @@ import (
 	"github.com/labstack/echo"
 )
 
-type approve struct {
-	User string `json:"user"`
-}
-
 var lock sync.Mutex
 
 //approveReprocessing approve reprocessing
