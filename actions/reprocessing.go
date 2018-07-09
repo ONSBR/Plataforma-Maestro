@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ONSBR/Plataforma-Maestro/broker"
+	"github.com/ONSBR/Plataforma-Maestro/etc"
+	"github.com/ONSBR/Plataforma-Maestro/sdk/eventmanager"
+	"github.com/labstack/gommon/log"
+
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	"github.com/ONSBR/Plataforma-Maestro/models"
 )
@@ -67,4 +72,33 @@ func GetStatusOfReprocessing(reprocessingID string) (string, error) {
 		return "", err
 	}
 	return rep.Status, nil
+}
+
+//ReprocessEvent takes a event to reprocess by system and emit event to event manager
+func ReprocessEvent(systemID string) {
+	picker := broker.GetPicker()
+	context, ok, err := picker.Pick(fmt.Sprintf(reprocessingEventsQueue, systemID))
+	if err != nil {
+		log.Error("cannot pick event to reprocess ", err)
+		return
+	}
+	if !ok {
+		log.Error("Queue is empty")
+		return
+	}
+	if context == nil {
+		log.Error("Context is nil cannot proceed")
+		return
+	}
+	defer context.Ack()
+	event, err := etc.GetEventFromMessage(context)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	err = eventmanager.Push(event)
+	if err != nil {
+		log.Error("cannot push event to event manager: ", err)
+	}
 }

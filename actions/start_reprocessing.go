@@ -46,17 +46,20 @@ func StartReprocessing(systemID string) {
 
 	log.Debug("starting reprocessing")
 	//Start reprocessing process
-	context, proceed := pickReprocessing(systemID)
+	context, proceed, reprocessing := pickReprocessing(systemID)
 	if !proceed {
-		log.Debug("reprocessing queue is empty")
+		log.Debug("reprocessing queue is empty or cannot get reprocessing")
 		return
 	}
 	defer context.Nack(true)
-	reprocessing := &models.Reprocessing{}
-	err := json.Unmarshal(context.Message.Data, reprocessing)
-	if err != nil {
-		log.Error(fmt.Sprintf("cannot unmarshall reprocessing for system %s: ", systemID), err)
-		return
+
+	errFnc := func(err error) {
+		if err := SetStatusReprocessing(reprocessing.ID, reprocessing.Status, ""); err != nil {
+			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
+		}
+		if err := context.RedirectTo("reprocessing", fmt.Sprintf("error_%s", reprocessing.ID)); err != nil {
+			log.Error(fmt.Sprintf("cannot redirect reprocessing %s to error queue: ", reprocessing.ID), err)
+		}
 	}
 
 	log.Debug("set reprocessing to running")
@@ -65,42 +68,42 @@ func StartReprocessing(systemID string) {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return
 	}
+
+	log.Debug("splitting reprocessing events")
+	if err := SplitReprocessingIntoEvents(reprocessing); err != nil {
+		reprocessing.AbortedSplitEventsFailure()
+		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
+		errFnc(err)
+		return
+	}
 	log.Debug("save pending commit to domain")
 	if err := appdomain.PersistEntitiesByInstance(reprocessing.SystemID, reprocessing.PendingEvent.InstanceID); err != nil {
 		log.Error("cannot persist pending event on domain: ", err)
-		if err := SetStatusReprocessing(reprocessing.ID, "aborted:persist-domain-failure", ""); err != nil {
-			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
-		}
-		if err := context.RedirectTo("reprocessing", fmt.Sprintf("error_%s", reprocessing.ID)); err != nil {
-			log.Error(fmt.Sprintf("cannot redirect reprocessing %s to error queue: ", reprocessing.ID), err)
-		}
+		reprocessing.AbortedPersistDomainFailure()
+		errFnc(err)
 		return
 	}
-	log.Debug("splitting reprocessing events")
 
-	if err := SplitReprocessingIntoEvents(reprocessing); err != nil {
-		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
-		if err := SetStatusReprocessing(reprocessing.ID, "aborted:split-events-failure", ""); err != nil {
-			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
-		}
-		if err := context.RedirectTo("reprocessing", fmt.Sprintf("error_%s", reprocessing.ID)); err != nil {
-			log.Error(fmt.Sprintf("cannot redirect reprocessing %s to error queue: ", reprocessing.ID), err)
-		}
-	}
+	go ReprocessEvent(systemID)
 
 }
 
-func pickReprocessing(id string) (*carrot.MessageContext, bool) {
+func pickReprocessing(id string) (*carrot.MessageContext, bool, *models.Reprocessing) {
 	picker := broker.GetPicker()
 	queue := fmt.Sprintf(reprocessingQueue, id)
 	context, isReprocessing, err := picker.Pick(queue)
 	if err != nil {
 		log.Error(err)
-		return nil, false
+		return nil, false, nil
 	}
 	if isReprocessing {
-		//give back reprocessing message to queue and proceed
-		return context, true
+		reprocessing := &models.Reprocessing{}
+		err := json.Unmarshal(context.Message.Data, reprocessing)
+		if err != nil {
+			log.Error(fmt.Sprintf("cannot unmarshall reprocessing"), err)
+			return context, false, nil
+		}
+		return context, true, reprocessing
 	}
-	return nil, false
+	return nil, false, nil
 }

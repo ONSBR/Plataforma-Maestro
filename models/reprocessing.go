@@ -8,6 +8,8 @@ import (
 const Running string = "running"
 const PendingApproval string = "pending_approval"
 const Skipped string = "skipped"
+const AbortedSplitEventsFail string = "aborted:split-events-failure"
+const AbortedPersistDomainFail string = "aborted:persist-domain-failure"
 
 //Reprocessing handle data from discovery service
 type Reprocessing struct {
@@ -41,6 +43,14 @@ func (rep *Reprocessing) Skipped(owner string) {
 
 func (rep *Reprocessing) Running() {
 	rep.SetStatus("", Running)
+}
+
+func (rep *Reprocessing) AbortedSplitEventsFailure() {
+	rep.SetStatus("", AbortedSplitEventsFail)
+}
+
+func (rep *Reprocessing) AbortedPersistDomainFailure() {
+	rep.SetStatus("", AbortedPersistDomainFail)
 }
 
 //SetStatus on reprocessing
