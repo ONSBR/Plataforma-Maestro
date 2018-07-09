@@ -30,7 +30,7 @@ Fluxo-03: Aprovar um reprocessamento para início imediato
 - [x] Publicar instancias que deverão ser reprocessadas na fila de reprocessamento
 - [x] API de check de bloqueio da Plataforma por sistema
 - [ ] Bloquear as execuções de persistência enquanto um reprocessamento estiver em execução
-- [ ] Faz o bloqueio de novos eventos no EventManager quando um reprocessamento está em execução
+- [x] Faz o bloqueio de novos eventos no EventManager quando um reprocessamento está em execução
 - [ ] Incrementa a fila de reprocessamento com novos eventos (Reprocessamento em Cascata)
 - [ ] Incrementa o documento de reprocessamento com novos eventos (Reprocessamento em Cascata)
 - [x] Fazer a persistência no domain quando oportuno
