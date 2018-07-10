@@ -7,8 +7,6 @@ import (
 
 	"github.com/ONSBR/Plataforma-Maestro/api"
 	"github.com/ONSBR/Plataforma-Maestro/broker"
-	"github.com/ONSBR/Plataforma-Maestro/handlers"
-	"github.com/PMoneda/carrot"
 	"github.com/labstack/gommon/log"
 )
 
@@ -33,12 +31,6 @@ func main() {
 		os.Setenv("PORT", "8089")
 	}
 	broker.Init()
-	subscriber := broker.GetSubscriber()
-	subscriber.Subscribe(carrot.SubscribeWorker{
-		Queue:   persistQueue,
-		Scale:   1,
-		Handler: handlers.PersistHandler,
-	})
 	api.InitAPI()
 }
 
