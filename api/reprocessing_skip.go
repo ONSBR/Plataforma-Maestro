@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/ONSBR/Plataforma-Maestro/actions"
+	"github.com/ONSBR/Plataforma-Maestro/models"
 	"github.com/labstack/echo"
 	"github.com/labstack/gommon/log"
 )
@@ -16,14 +16,14 @@ func reprocessingSkip(c echo.Context) error {
 	if err := c.Bind(approver); err != nil {
 		return err
 	}
-	rep, err := actions.GetReprocessing(c.Param("id"))
+	rep, err := models.GetReprocessing(c.Param("id"))
 	if err != nil {
 		return err
 	}
 	if rep.IsPendingApproval() {
 		rep.Skipped(approver.User)
 		log.Debug(fmt.Sprintf("reprocessing skipped by %s", approver.User))
-		return actions.SaveReprocessing(rep)
+		return models.SaveReprocessing(rep)
 	}
 	return fmt.Errorf("You cannot skip a not pending approval reprocessing")
 }

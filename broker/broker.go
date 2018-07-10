@@ -108,3 +108,19 @@ func GetMessageFrom(msg interface{}) (carrot.Message, error) {
 		Encoding:    "utf-8",
 	}, nil
 }
+
+//Pop item from queue
+func Pop(queue string) (data []byte, empty bool, err error) {
+	ctx, ok, err := picker.Pick(queue)
+	if err != nil {
+		return
+	}
+	empty = !ok
+	if ok && ctx != nil {
+		defer ctx.Ack()
+		data = ctx.Message.Data
+		return
+	}
+
+	return
+}

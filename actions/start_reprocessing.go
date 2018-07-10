@@ -18,11 +18,6 @@ var cache map[string]bool
 var once sync.Once
 var declareMut sync.Mutex
 
-const reprocessingQueue = "reprocessing.%s.queue"
-const reprocessingEventsQueue = "reprocessing.%s.events.queue"
-const reprocessingEventsControlQueue = "reprocessing.%s.events.control.queue"
-const reprocessingErrorQueue = "reprocessing.%s.error.queue"
-
 //DispatchReprocessing dispatches an approved reprocessing to system queue
 func DispatchReprocessing(reprocessing models.Reprocessing) {
 	once.Do(func() {
@@ -54,7 +49,7 @@ func StartReprocessing(systemID string) {
 	defer context.Nack(true)
 
 	errFnc := func(err error) {
-		if err := SetStatusReprocessing(reprocessing.ID, reprocessing.Status, ""); err != nil {
+		if err := models.SetStatusReprocessing(reprocessing.ID, reprocessing.Status, ""); err != nil {
 			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
 		}
 		if err := context.RedirectTo("reprocessing", fmt.Sprintf("error_%s", reprocessing.ID)); err != nil {
@@ -64,7 +59,7 @@ func StartReprocessing(systemID string) {
 
 	log.Debug("set reprocessing to running")
 	reprocessing.Running()
-	if err := SaveReprocessing(reprocessing); err != nil {
+	if err := models.SaveReprocessing(reprocessing); err != nil {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return
 	}
@@ -90,7 +85,7 @@ func StartReprocessing(systemID string) {
 
 func pickReprocessing(id string) (*carrot.MessageContext, bool, *models.Reprocessing) {
 	picker := broker.GetPicker()
-	queue := fmt.Sprintf(reprocessingQueue, id)
+	queue := fmt.Sprintf(models.ReprocessingQueue, id)
 	context, isReprocessing, err := picker.Pick(queue)
 	if err != nil {
 		log.Error(err)

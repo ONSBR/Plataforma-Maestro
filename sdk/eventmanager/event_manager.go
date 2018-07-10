@@ -16,7 +16,7 @@ func Push(event *domain.Event) error {
 	host := env.Get("EVENT_MANAGER_HOST", "localhost")
 	port := env.Get("EVENT_MANAGER_PORT", "8081")
 	url := fmt.Sprintf("%s://%s:%s/sendevent", scheme, host, port)
-	resp, err := http.Post(url, event)
+	resp, err := http.Put(url, event)
 	if err != nil {
 		return err
 	}

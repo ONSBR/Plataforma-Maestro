@@ -9,6 +9,9 @@ import (
 
 func getPendingReprocessing(c echo.Context) error {
 	j, err := sdk.GetDocument("reprocessing", map[string]string{"systemId": c.Param("systemId"), "status": "pending_approval"})
+	if err != nil {
+		return err
+	}
 	data := make([]map[string]interface{}, 0)
 	json.Unmarshal([]byte(j), &data)
 	if err != nil {

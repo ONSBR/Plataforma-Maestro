@@ -3,10 +3,9 @@ package actions
 import (
 	"sync"
 
-	"github.com/ONSBR/Plataforma-Maestro/etc"
-
 	"github.com/PMoneda/carrot"
 
+	"github.com/ONSBR/Plataforma-Maestro/models"
 	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
 )
 
@@ -16,7 +15,7 @@ var mut sync.RWMutex
 
 //ProceedToCommit process commiting to domain events by solution
 func ProceedToCommit(context *carrot.MessageContext) error {
-	event, _ := etc.GetEventFromMessage(context)
+	event, _ := models.GetEventFromCeleryMessage(context)
 	if err := appdomain.PersistEntitiesByInstance(event.SystemID, event.InstanceID); err != nil {
 		return err
 	}
