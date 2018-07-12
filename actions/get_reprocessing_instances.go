@@ -3,6 +3,7 @@ package actions
 import (
 	"fmt"
 
+	"github.com/ONSBR/Plataforma-Maestro/models"
 	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
@@ -10,7 +11,7 @@ import (
 )
 
 //GetReprocessingInstances from discovery service based on perist event
-func GetReprocessingInstances(event *domain.Event) ([]string, error) {
+func GetReprocessingInstances(event *domain.Event) ([]models.ReprocessingUnit, error) {
 	if event.InstanceID == "" {
 		return nil, fmt.Errorf("event %s should have instance id", event.Name)
 	}
@@ -21,5 +22,5 @@ func GetReprocessingInstances(event *domain.Event) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return discovery.GetReprocessingInstances(entities)
+	return discovery.GetReprocessingInstances(event.SystemID, event.InstanceID, entities)
 }

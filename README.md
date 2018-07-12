@@ -24,7 +24,7 @@ Fluxo-03: Aprovar um reprocessamento para início imediato
 - [x] Receber os eventos de persistência da Plataforma
 - [x] Levantar uma API básica
 - [x] Implementar um endpoint no domain para retornar a lista de entidades baseada na instancia do processo
-- [ ] Integrar com o Discovery para capturar as instancias que deverão ser reprocessadas
+- [x] Integrar com o Discovery para capturar as instancias que deverão ser reprocessadas
 - [x] Implementar o serviço que permita ao admin e iniciar um reprocessamento
 - [x] Implementar o serviço que permita ao admin ignorar um reprocessamento e por consequência ignorar um commit
 - [x] Publicar instancias que deverão ser reprocessadas na fila de reprocessamento

@@ -1,34 +1,28 @@
 package discovery
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
+	"fmt"
 
+	"github.com/PMoneda/http"
+
+	"github.com/ONSBR/Plataforma-Deployer/env"
+
+	"github.com/ONSBR/Plataforma-Maestro/models"
 	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
 )
 
 //GetReprocessingInstances from discovery service
-func GetReprocessingInstances(entites appdomain.EntitiesList) ([]string, error) {
+func GetReprocessingInstances(systemID, instanceID string, entites appdomain.EntitiesList) ([]models.ReprocessingUnit, error) {
 	//TODO get data from Discovey
-	var en []map[string]interface{}
+	scheme := env.Get("DISCOVERY_SCHEME", "http")
+	host := env.Get("DISCOVERY_HOST", "localhost")
+	port := env.Get("DISCOVERY_PORT", "8090")
 
-	url := "http://process_memory:9091/instances/byEntities?systemId=ec498841-59e5-47fd-8075-136d79155705&entities=conta%2Coperacao"
-
-	req, _ := http.NewRequest("GET", url, nil)
-
-	res, _ := http.DefaultClient.Do(req)
-
-	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
-
-	err := json.Unmarshal(body, &en)
+	url := fmt.Sprintf("%s://%s:%s/v1.0.0/discovery/entities?systemID=%s&instanceID=%s", scheme, host, port, systemID, instanceID)
+	units := make([]models.ReprocessingUnit, 0)
+	err := http.GetJSON(url, &units)
 	if err != nil {
 		return nil, err
 	}
-	instances := make([]string, len(en))
-	for i, instance := range en {
-		instances[i] = instance["process"].(string)
-	}
-	return instances, nil
+	return units, nil
 }

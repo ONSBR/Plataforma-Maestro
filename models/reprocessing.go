@@ -22,6 +22,11 @@ const ReprocessingEventsQueue = "reprocessing.%s.events.queue"
 const ReprocessingEventsControlQueue = "reprocessing.%s.events.control.queue"
 const ReprocessingErrorQueue = "reprocessing.%s.error.queue"
 
+type ReprocessingUnit struct {
+	Branch     string `json:"branch"`
+	InstanceID string `json:"instanceId"`
+}
+
 //Reprocessing handle data from discovery service
 type Reprocessing struct {
 	SystemID      string               `json:"systemId,omitempty"`

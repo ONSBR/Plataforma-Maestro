@@ -52,7 +52,7 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 	return err
 }
 
-func hasReprocessing(instances []string) bool {
+func hasReprocessing(instances []models.ReprocessingUnit) bool {
 	return len(instances) > 0
 }
 

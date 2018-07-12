@@ -9,7 +9,7 @@ import (
 )
 
 //SubmitReprocessingToApprove block persistence on domain until reprocessing will be approve
-func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []string) (err error) {
+func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []models.ReprocessingUnit) (err error) {
 	reprocessing := models.NewReprocessing(persistEvent)
 	reprocessing.PendingApproval()
 	origin, err := processmemory.GetEventByInstance(persistEvent.InstanceID)
@@ -38,14 +38,15 @@ func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []string)
 	return
 }
 
-func getEventsFromInstances(instances []string) ([]*domain.Event, error) {
-	events := make([]*domain.Event, len(instances))
-	for i, instance := range instances {
-		evt, err := processmemory.GetEventByInstance(instance)
+func getEventsFromInstances(instances []models.ReprocessingUnit) ([]*domain.Event, error) {
+	events := make([]*domain.Event, 0)
+	for _, instance := range instances {
+		evt, err := processmemory.GetEventByInstance(instance.InstanceID)
 		if err != nil {
 			return nil, err
 		}
-		events[i] = evt
+		evt.Branch = instance.Branch
+		events = append(events, evt)
 	}
 	return events, nil
 }
