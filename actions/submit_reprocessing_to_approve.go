@@ -1,6 +1,9 @@
 package actions
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	"github.com/ONSBR/Plataforma-Maestro/models"
@@ -34,6 +37,9 @@ func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []models.
 	if err != nil {
 		log.Error(err)
 		return
+	}
+	if os.Getenv(fmt.Sprintf("AUTO_REPROCESSING_%s", persistEvent.SystemID)) != "" {
+		go ApproveReprocessing(reprocessing.ID, "platform")
 	}
 	return
 }
