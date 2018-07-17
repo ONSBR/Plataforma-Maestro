@@ -47,7 +47,10 @@ func StartReprocessing(systemID string) {
 		return
 	}
 	defer context.Nack(true)
-
+	if reprocessing == nil {
+		log.Error("Reprocessing for system: ", systemID, " is nil")
+		return
+	}
 	errFnc := func(err error) {
 		if err := models.SetStatusReprocessing(reprocessing.ID, reprocessing.Status, ""); err != nil {
 			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
@@ -63,7 +66,6 @@ func StartReprocessing(systemID string) {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return
 	}
-
 	log.Debug("splitting reprocessing events")
 	if err := SplitReprocessingIntoEvents(reprocessing); err != nil {
 		reprocessing.AbortedSplitEventsFailure()
@@ -71,14 +73,13 @@ func StartReprocessing(systemID string) {
 		errFnc(err)
 		return
 	}
-	log.Debug("save pending commit to domain")
+	log.Debug("save pending commit to domain instance: ", reprocessing.PendingEvent.InstanceID)
 	if err := appdomain.PersistEntitiesByInstance(reprocessing.SystemID, reprocessing.PendingEvent.InstanceID); err != nil {
 		log.Error("cannot persist pending event on domain: ", err)
 		reprocessing.AbortedPersistDomainFailure()
 		errFnc(err)
 		return
 	}
-
 	go ReprocessEvent(systemID)
 
 }
@@ -89,7 +90,7 @@ func pickReprocessing(id string) (*carrot.MessageContext, bool, *models.Reproces
 	context, isReprocessing, err := picker.Pick(queue)
 	if err != nil {
 		log.Error(err)
-		return nil, false, nil
+		return nil, false, new(models.Reprocessing)
 	}
 	if isReprocessing {
 		reprocessing := &models.Reprocessing{}
@@ -100,5 +101,5 @@ func pickReprocessing(id string) (*carrot.MessageContext, bool, *models.Reproces
 		}
 		return context, true, reprocessing
 	}
-	return nil, false, nil
+	return nil, false, new(models.Reprocessing)
 }

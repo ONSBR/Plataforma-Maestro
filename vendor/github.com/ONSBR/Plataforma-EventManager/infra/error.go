@@ -4,8 +4,9 @@ import (
 	"fmt"
 )
 
-//var mapErrorTagHTTPStatus = map[string]int{PlatformLocked: 401, PlatformComponentError: 500, SystemError: 500, InvalidArguments: 400, PersistEventQueueEmpty: 201, SubscriberNotFound: 404}
-var mapErrorTagHTTPStatus = map[string]int{RunningReprocessing: 200, PlatformLocked: 200, PlatformComponentError: 200, SystemError: 200, InvalidArguments: 200, PersistEventQueueEmpty: 200, SubscriberNotFound: 200}
+var mapErrorTagHTTPStatus = map[string]int{RunningReprocessing: 200, PlatformLocked: 401, PlatformComponentError: 500, SystemError: 500, InvalidArguments: 400, PersistEventQueueEmpty: 201, SubscriberNotFound: 404}
+
+//var mapErrorTagHTTPStatus = map[string]int{RunningReprocessing: 200, PlatformLocked: 200, PlatformComponentError: 200, SystemError: 200, InvalidArguments: 200, PersistEventQueueEmpty: 200, SubscriberNotFound: 200}
 
 //PlatformComponentError is a error tag to map error on platform components
 const PlatformComponentError = "platform_component_error"

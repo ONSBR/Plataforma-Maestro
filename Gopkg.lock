@@ -18,7 +18,7 @@
     "infra",
     "sdk"
   ]
-  revision = "11ca13fd570f397491f284f32219c2d8d7f8f4c8"
+  revision = "6e7f22e2ec411babd5cc4a626aefb80cdd4181a8"
 
 [[projects]]
   branch = "master"
@@ -96,6 +96,12 @@
   source = "github.com/PMoneda/rabbit-hole"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
+
+[[projects]]
   name = "github.com/smartystreets/assertions"
   packages = [
     ".",
@@ -138,14 +144,18 @@
   name = "golang.org/x/crypto"
   packages = [
     "acme",
-    "acme/autocert"
+    "acme/autocert",
+    "ssh/terminal"
   ]
   revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "ce36f3865eeb42541ce3f87f32f8462c5687befa"
 
 [solve-meta]

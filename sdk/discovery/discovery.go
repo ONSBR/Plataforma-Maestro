@@ -8,11 +8,10 @@ import (
 	"github.com/ONSBR/Plataforma-Deployer/env"
 
 	"github.com/ONSBR/Plataforma-Maestro/models"
-	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
 )
 
 //GetReprocessingInstances from discovery service
-func GetReprocessingInstances(systemID, instanceID string, entites appdomain.EntitiesList) ([]models.ReprocessingUnit, error) {
+func GetReprocessingInstances(systemID, instanceID string) ([]models.ReprocessingUnit, error) {
 	//TODO get data from Discovey
 	scheme := env.Get("DISCOVERY_SCHEME", "http")
 	host := env.Get("DISCOVERY_HOST", "localhost")

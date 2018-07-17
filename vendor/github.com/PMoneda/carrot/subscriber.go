@@ -1,8 +1,6 @@
 package carrot
 
 import (
-	"fmt"
-
 	"github.com/streadway/amqp"
 )
 
@@ -65,12 +63,8 @@ func (sub *Subscriber) Subscribe(worker SubscribeWorker) error {
 			}
 			context.delivery = message
 			context.subscriber = sub
-			err := worker.Handler(context)
-			if err != nil {
-				fmt.Println(err)
-			}
+			worker.Handler(context)
 		}
-		panic("perdeu o rabbitmq")
 	}
 	for i = 0; i < worker.Scale; i++ {
 		ch, err := sub.client.Channel()

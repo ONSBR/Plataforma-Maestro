@@ -22,7 +22,7 @@ func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []models.
 	}
 	reprocessing.Origin = origin
 
-	events, err := getEventsFromInstances(instances)
+	events, err := GetEventsFromInstances(instances)
 	if err != nil {
 		log.Error(err)
 		return
@@ -42,17 +42,4 @@ func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []models.
 		go ApproveReprocessing(reprocessing.ID, "platform")
 	}
 	return
-}
-
-func getEventsFromInstances(instances []models.ReprocessingUnit) ([]*domain.Event, error) {
-	events := make([]*domain.Event, 0)
-	for _, instance := range instances {
-		evt, err := processmemory.GetEventByInstance(instance.InstanceID)
-		if err != nil {
-			return nil, err
-		}
-		evt.Branch = instance.Branch
-		events = append(events, evt)
-	}
-	return events, nil
 }

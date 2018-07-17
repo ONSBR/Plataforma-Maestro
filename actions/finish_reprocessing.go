@@ -32,6 +32,9 @@ func FinishReprocessing(systemID string) error {
 		return err
 	}
 	reprocessing, err := models.GetReprocessing(rep.ID)
+	if err != nil {
+		return err
+	}
 	reprocessing.Finish()
 	return models.SaveReprocessing(reprocessing)
 }
