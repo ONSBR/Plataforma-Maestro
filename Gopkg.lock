@@ -8,7 +8,7 @@
     "env",
     "sdk/apicore"
   ]
-  revision = "d83ca7d401322df4962c0e6ae27d7436bb9b2a03"
+  revision = "111ada6454d32affd4f25da7c645baf327917912"
 
 [[projects]]
   branch = "feature/reprocessamento"
@@ -18,7 +18,7 @@
     "infra",
     "sdk"
   ]
-  revision = "6e7f22e2ec411babd5cc4a626aefb80cdd4181a8"
+  revision = "fa0f05e54a00a837f6e4109001b007b824911395"
 
 [[projects]]
   branch = "master"
@@ -156,7 +156,7 @@
     "unix",
     "windows"
   ]
-  revision = "ce36f3865eeb42541ce3f87f32f8462c5687befa"
+  revision = "ac767d655b305d4e9612f5f6e33120b9176c4ad4"
 
 [solve-meta]
   analyzer-name = "dep"

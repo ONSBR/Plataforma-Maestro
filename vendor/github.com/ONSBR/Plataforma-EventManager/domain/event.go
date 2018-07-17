@@ -2,6 +2,8 @@ package domain
 
 import (
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 //TODO maybe will be better put this events on apicore
@@ -17,21 +19,22 @@ var SystemEvents = []string{
 
 //Event define a basic platform event contract
 type Event struct {
-	Timestamp    string                 `json:"timestamp"`
-	Branch       string                 `json:"branch"`
-	SystemID     string                 `json:"systemId,omitempty"`
-	Name         string                 `json:"name,omitempty"`
-	Version      string                 `json:"version,omitempty"`
-	Image        string                 `json:"image,omitempty"`
-	Tag          string                 `json:"tag"`
-	AppOrigin    string                 `json:"appOrigin,omitempty"`
-	Owner        string                 `json:"owner,omitempty"`
-	InstanceID   string                 `json:"instanceId,omitempty"`
-	Scope        string                 `json:"scope,omitempty"`
-	Payload      map[string]interface{} `json:"payload,omitempty"`
-	Reproduction map[string]interface{} `json:"reproduction,omitempty"`
-	Reprocessing *ReprocessingInfo      `json:"reprocessing,omitempty"`
-	Bindings     []*Operation           `json:"-"`
+	Timestamp      string                 `json:"timestamp"`
+	Branch         string                 `json:"branch"`
+	SystemID       string                 `json:"systemId,omitempty"`
+	Name           string                 `json:"name,omitempty"`
+	Version        string                 `json:"version,omitempty"`
+	Image          string                 `json:"image,omitempty"`
+	IdempotencyKey string                 `json:"idempotencyKey"`
+	Tag            string                 `json:"tag"`
+	AppOrigin      string                 `json:"appOrigin,omitempty"`
+	Owner          string                 `json:"owner,omitempty"`
+	InstanceID     string                 `json:"instanceId,omitempty"`
+	Scope          string                 `json:"scope,omitempty"`
+	Payload        map[string]interface{} `json:"payload,omitempty"`
+	Reproduction   map[string]interface{} `json:"reproduction,omitempty"`
+	Reprocessing   *ReprocessingInfo      `json:"reprocessing,omitempty"`
+	Bindings       []*Operation           `json:"-"`
 }
 
 //ReprocessingInfo store all reprocessing information on event
@@ -67,6 +70,10 @@ func (e *Event) ApplyDefaultFields() {
 	}
 	if e.Scope == "" {
 		e.Scope = "execution"
+	}
+	if e.Tag == "" {
+		u, _ := uuid.NewUUID()
+		e.Tag = u.String()
 	}
 }
 

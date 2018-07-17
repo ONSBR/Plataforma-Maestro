@@ -74,6 +74,20 @@ func (rep *Reprocessing) Append(events []*domain.Event) {
 		rep.Events = append(rep.Events, event)
 	}
 }
+func (rep *Reprocessing) RemoveDuplicates(events []*domain.Event) []*domain.Event {
+	list := make([]*domain.Event, 0)
+	for _, event := range events {
+		if event.IdempotencyKey == rep.Origin.IdempotencyKey && event.Branch == rep.Origin.Branch {
+			continue
+		}
+		for _, e := range rep.Events {
+			if !(e.IdempotencyKey == event.IdempotencyKey && e.Branch == event.Branch) {
+				list = append(list, event)
+			}
+		}
+	}
+	return list
+}
 
 func (rep *Reprocessing) AbortedSplitEventsFailure() {
 	rep.SetStatus("", AbortedSplitEventsFail)

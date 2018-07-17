@@ -3,6 +3,8 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/ONSBR/Plataforma-Maestro/sdk/processmemory"
+
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 
 	"github.com/ONSBR/Plataforma-Maestro/actions"
@@ -59,9 +61,37 @@ func hasReprocessing(instances []models.ReprocessingUnit) bool {
 func handleExecutionPersistence(eventParsed *domain.Event) (err error) {
 	instances, err := actions.GetReprocessingInstances(eventParsed)
 	log.Debug("instances to reprocess ", instances)
-	if err == nil && hasReprocessing(instances) {
+	events, err := actions.GetEventsFromInstances(instances)
+	if err != nil {
+		return err
+	}
+	origin, err := processmemory.GetEventByInstance(eventParsed.InstanceID)
+	if err != nil {
+		return err
+	}
+	finalInstancesToReprocess := make([]models.ReprocessingUnit, 0)
+	grouped := make(map[string]bool)
+	originKey := fmt.Sprintf("%s:%s", origin.IdempotencyKey, eventParsed.Branch)
+	log.Info("name = ", eventParsed.Name, " scope = ", eventParsed.Scope, " branch = ", eventParsed.Branch, " instance id = ", eventParsed.InstanceID)
+	log.Info("Origin Key: ", originKey)
+	for _, evt := range events {
+		key := fmt.Sprintf("%s:%s", evt.IdempotencyKey, evt.Branch)
+		log.Info("Event key: ", key)
+		if originKey == key {
+			log.Info("Skipping origin key = event key")
+			continue
+		}
+		_, ok := grouped[key]
+		if !ok {
+			log.Info("Add key ", key, " to reprocess")
+			grouped[key] = true
+			finalInstancesToReprocess = append(finalInstancesToReprocess, models.ReprocessingUnit{Branch: evt.Branch, InstanceID: evt.InstanceID})
+		}
+	}
+
+	if err == nil && hasReprocessing(finalInstancesToReprocess) {
 		etc.LogDuration("submiting to approve reprocessing", func() {
-			err = actions.SubmitReprocessingToApprove(eventParsed, instances)
+			err = actions.SubmitReprocessingToApprove(eventParsed, finalInstancesToReprocess)
 		})
 	} else if err == nil {
 		etc.LogDuration("commiting data", func() {
@@ -90,6 +120,7 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 				return
 			}
 			log.Debug("appending new reprocessing events")
+			events = reprocessing.RemoveDuplicates(events)
 			reprocessing.Append(events)
 			err = models.SaveReprocessing(reprocessing)
 			if err == nil {
