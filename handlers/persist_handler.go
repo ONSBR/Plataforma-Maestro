@@ -54,48 +54,39 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 	return err
 }
 
-func hasReprocessing(instances []models.ReprocessingUnit) bool {
-	return len(instances) > 0
-}
-
-func handleExecutionPersistence(eventParsed *domain.Event) (err error) {
-	instances, err := actions.GetReprocessingInstances(eventParsed)
+func handleExecutionPersistence(persistenceEvent *domain.Event) (err error) {
+	instances, err := actions.GetReprocessingInstances(persistenceEvent)
 	log.Debug("instances to reprocess ", instances)
 	events, err := actions.GetEventsFromInstances(instances)
 	if err != nil {
 		return err
 	}
-	origin, err := processmemory.GetEventByInstance(eventParsed.InstanceID)
+	origin, err := processmemory.GetEventByInstance(persistenceEvent.InstanceID)
 	if err != nil {
 		return err
 	}
-	finalInstancesToReprocess := make([]models.ReprocessingUnit, 0)
+	finalInstancesToReprocess := make([]*domain.Event, 0)
 	grouped := make(map[string]bool)
-	originKey := fmt.Sprintf("%s:%s", origin.IdempotencyKey, eventParsed.Branch)
-	log.Info("name = ", eventParsed.Name, " scope = ", eventParsed.Scope, " branch = ", eventParsed.Branch, " instance id = ", eventParsed.InstanceID)
-	log.Info("Origin Key: ", originKey)
+	originKey := fmt.Sprintf("%s:%s", origin.IdempotencyKey, persistenceEvent.Branch)
 	for _, evt := range events {
 		key := fmt.Sprintf("%s:%s", evt.IdempotencyKey, evt.Branch)
-		log.Info("Event key: ", key)
 		if originKey == key {
-			log.Info("Skipping origin key = event key")
 			continue
 		}
 		_, ok := grouped[key]
 		if !ok {
-			log.Info("Add key ", key, " to reprocess")
 			grouped[key] = true
-			finalInstancesToReprocess = append(finalInstancesToReprocess, models.ReprocessingUnit{Branch: evt.Branch, InstanceID: evt.InstanceID})
+			finalInstancesToReprocess = append(finalInstancesToReprocess, evt)
 		}
 	}
 
-	if err == nil && hasReprocessing(finalInstancesToReprocess) {
+	if err == nil && len(finalInstancesToReprocess) > 0 {
 		etc.LogDuration("submiting to approve reprocessing", func() {
-			err = actions.SubmitReprocessingToApprove(eventParsed, finalInstancesToReprocess)
+			err = actions.SubmitReprocessingToApprove(persistenceEvent, origin, finalInstancesToReprocess)
 		})
 	} else if err == nil {
 		etc.LogDuration("commiting data", func() {
-			err = actions.ProceedToCommit(eventParsed)
+			err = actions.ProceedToCommit(persistenceEvent)
 		})
 	}
 	return
@@ -103,7 +94,7 @@ func handleExecutionPersistence(eventParsed *domain.Event) (err error) {
 
 func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 	instances, err := actions.GetReprocessingInstances(eventParsed)
-	if err == nil && hasReprocessing(instances) {
+	if err == nil && len(instances) > 0 {
 		etc.LogDuration("appending reprocessing instances to reprocessing queue", func() {
 			log.Debug("get events from instances")
 			events, err := actions.GetEventsFromInstances(instances)

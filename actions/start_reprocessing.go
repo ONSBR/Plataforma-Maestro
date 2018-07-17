@@ -19,7 +19,7 @@ var once sync.Once
 var declareMut sync.Mutex
 
 //DispatchReprocessing dispatches an approved reprocessing to system queue
-func DispatchReprocessing(reprocessing models.Reprocessing) {
+func DispatchReprocessing(reprocessing models.Reprocessing, lock bool) {
 	once.Do(func() {
 		cache = make(map[string]bool)
 	})
@@ -33,11 +33,11 @@ func DispatchReprocessing(reprocessing models.Reprocessing) {
 	msg, _ := broker.GetMessageFrom(reprocessing)
 	publisher.Publish("reprocessing", reprocessing.SystemID, msg)
 
-	go StartReprocessing(reprocessing.SystemID)
+	go StartReprocessing(reprocessing.SystemID, lock)
 }
 
 //StartReprocessing picks first reprocessing in queue
-func StartReprocessing(systemID string) {
+func StartReprocessing(systemID string, lock bool) {
 
 	log.Debug("starting reprocessing")
 	//Start reprocessing process
@@ -61,7 +61,7 @@ func StartReprocessing(systemID string) {
 	}
 
 	log.Debug("set reprocessing to running")
-	reprocessing.Running()
+	reprocessing.Running(lock)
 	if err := models.SaveReprocessing(reprocessing); err != nil {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return

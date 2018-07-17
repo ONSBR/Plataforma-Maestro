@@ -10,7 +10,7 @@ import (
 )
 
 //ApproveReprocessing approve reprocessing
-func ApproveReprocessing(reprocessingID, user string) (*models.Reprocessing, error) {
+func ApproveReprocessing(reprocessingID, user string, lock bool) (*models.Reprocessing, error) {
 	j, err := sdk.GetDocument("reprocessing", map[string]string{"id": reprocessingID, "status": "pending_approval"})
 	data := make([]models.Reprocessing, 0)
 	json.Unmarshal([]byte(j), &data)
@@ -26,6 +26,6 @@ func ApproveReprocessing(reprocessingID, user string) (*models.Reprocessing, err
 	if err := sdk.ReplaceDocument("reprocessing", map[string]string{"id": reprocessingID, "status": "pending_approval"}, data[0]); err != nil {
 		return nil, err
 	}
-	go DispatchReprocessing(data[0])
+	go DispatchReprocessing(data[0], lock)
 	return &data[0], nil
 }

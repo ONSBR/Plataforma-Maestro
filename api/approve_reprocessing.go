@@ -18,7 +18,7 @@ func approveReprocessing(c echo.Context) error {
 	if err := c.Bind(approver); err != nil {
 		return err
 	}
-	data, err := actions.ApproveReprocessing(c.Param("id"), approver.User)
+	data, err := actions.ApproveReprocessing(c.Param("id"), approver.User, true)
 	if err != nil {
 		return err
 	}

@@ -4,29 +4,21 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
+
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	"github.com/ONSBR/Plataforma-Maestro/models"
-	"github.com/ONSBR/Plataforma-Maestro/sdk/processmemory"
 	"github.com/labstack/gommon/log"
 )
 
 //SubmitReprocessingToApprove block persistence on domain until reprocessing will be approve
-func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []models.ReprocessingUnit) (err error) {
+func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*domain.Event) (err error) {
 	reprocessing := models.NewReprocessing(persistEvent)
 	reprocessing.PendingApproval()
-	origin, err := processmemory.GetEventByInstance(persistEvent.InstanceID)
-	if err != nil {
-		log.Error(err)
-		return
-	}
+
 	reprocessing.Origin = origin
 
-	events, err := GetEventsFromInstances(instances)
-	if err != nil {
-		log.Error(err)
-		return
-	}
 	reprocessing.Events = events
 	err = sdk.SaveDocument("reprocessing", reprocessing)
 	if err != nil {
@@ -39,7 +31,15 @@ func SubmitReprocessingToApprove(persistEvent *domain.Event, instances []models.
 		return
 	}
 	if os.Getenv(fmt.Sprintf("AUTO_REPROCESSING_%s", persistEvent.SystemID)) != "" {
-		go ApproveReprocessing(reprocessing.ID, "platform")
+		go ApproveReprocessing(reprocessing.ID, "platform", true)
+	}
+	list := make([]map[string]interface{}, 0)
+	apicore.FindByID("processInstance", persistEvent.InstanceID, &list)
+	if len(list) > 0 {
+		isFork, ok := list[0]["isFork"]
+		if ok && isFork.(bool) {
+			go ApproveReprocessing(reprocessing.ID, "platform:open_branch", false)
+		}
 	}
 	return
 }

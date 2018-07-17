@@ -12,6 +12,7 @@ import (
 )
 
 const Running string = "running"
+const RunningWithoutLock string = "running_without_lock"
 const Finished string = "finished"
 const PendingApproval string = "pending_approval"
 const Skipped string = "skipped"
@@ -65,8 +66,13 @@ func (rep *Reprocessing) Skipped(owner string) {
 	rep.SetStatus(owner, Skipped)
 }
 
-func (rep *Reprocessing) Running() {
-	rep.SetStatus("", Running)
+func (rep *Reprocessing) Running(lock bool) {
+	if lock {
+		rep.SetStatus("", Running)
+	} else {
+		rep.SetStatus("", RunningWithoutLock)
+	}
+
 }
 
 func (rep *Reprocessing) Append(events []*domain.Event) {
