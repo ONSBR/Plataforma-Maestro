@@ -65,24 +65,9 @@ func handleExecutionPersistence(persistenceEvent *domain.Event) (err error) {
 	if err != nil {
 		return err
 	}
-	finalInstancesToReprocess := make([]*domain.Event, 0)
-	grouped := make(map[string]bool)
-	originKey := fmt.Sprintf("%s:%s", origin.IdempotencyKey, persistenceEvent.Branch)
-	for _, evt := range events {
-		key := fmt.Sprintf("%s:%s", evt.IdempotencyKey, evt.Branch)
-		if originKey == key {
-			continue
-		}
-		_, ok := grouped[key]
-		if !ok {
-			grouped[key] = true
-			finalInstancesToReprocess = append(finalInstancesToReprocess, evt)
-		}
-	}
-
-	if err == nil && len(finalInstancesToReprocess) > 0 {
+	if err == nil && len(events) > 0 {
 		etc.LogDuration("submiting to approve reprocessing", func() {
-			err = actions.SubmitReprocessingToApprove(persistenceEvent, origin, finalInstancesToReprocess)
+			err = actions.SubmitReprocessingToApprove(persistenceEvent, origin, events)
 		})
 	} else if err == nil {
 		etc.LogDuration("commiting data", func() {

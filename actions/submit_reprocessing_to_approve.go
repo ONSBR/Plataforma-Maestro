@@ -37,7 +37,7 @@ func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*d
 	apicore.FindByID("processInstance", persistEvent.InstanceID, &list)
 	if len(list) > 0 {
 		isFork, ok := list[0]["isFork"]
-		if ok && isFork.(bool) {
+		if ok && isFork != nil && isFork.(bool) {
 			go ApproveReprocessing(reprocessing.ID, "platform:open_branch", false)
 		}
 	}
