@@ -9,9 +9,11 @@ import (
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	"github.com/ONSBR/Plataforma-Maestro/etc"
 	"github.com/PMoneda/carrot"
+	"github.com/labstack/gommon/log"
 )
 
 const Running string = "running"
+const Approved string = "approved"
 const RunningWithoutLock string = "running_without_lock"
 const Finished string = "finished"
 const PendingApproval string = "pending_approval"
@@ -37,6 +39,8 @@ type Reprocessing struct {
 	Events        []*domain.Event      `json:"events,omitempty"`
 	Status        string               `json:"status"`
 	HistoryStatus []ReprocessingStatus `json:"history"`
+	Tag           string               `json:"tag"`
+	Branch        string               `json:"branch"`
 }
 
 //ReprocessingStatus stores user actions over reprocessing
@@ -55,15 +59,19 @@ func (rep *Reprocessing) IsPendingApproval() bool {
 }
 
 func (rep *Reprocessing) IsRunning() bool {
-	return rep.Status == Running
+	return rep.Status == Running || rep.Status == RunningWithoutLock
 }
 
 func (rep *Reprocessing) Finish() {
 	rep.SetStatus("", Finished)
 }
 
-func (rep *Reprocessing) Skipped(owner string) {
+func (rep *Reprocessing) Skip(owner string) {
 	rep.SetStatus(owner, Skipped)
+}
+
+func (rep *Reprocessing) Approve(owner string) {
+	rep.SetStatus(owner, Approved)
 }
 
 func (rep *Reprocessing) Running(lock bool) {
@@ -80,19 +88,25 @@ func (rep *Reprocessing) Append(events []*domain.Event) {
 		rep.Events = append(rep.Events, event)
 	}
 }
-func (rep *Reprocessing) RemoveDuplicates(events []*domain.Event) []*domain.Event {
-	list := make([]*domain.Event, 0)
-	for _, event := range events {
-		if event.IdempotencyKey == rep.Origin.IdempotencyKey && event.Branch == rep.Origin.Branch {
-			continue
-		}
-		for _, e := range rep.Events {
-			if !(e.IdempotencyKey == event.IdempotencyKey && e.Branch == event.Branch) {
-				list = append(list, event)
+
+func (rep *Reprocessing) AddEvents(events []*domain.Event) {
+	if len(rep.Events) == 0 {
+		rep.Append(events)
+		return
+	}
+	log.Info("Total existing events: ", len(rep.Events))
+	log.Info("Total new events: ", len(events))
+	for _, event := range rep.Events {
+		for _, evt := range events {
+			if evt.Branch == event.Branch && evt.Tag == event.Tag {
+				log.Info("skipping event ", evt.Name, " branch=", evt.Branch, " tag=", evt.Tag)
+				continue
 			}
+			rep.Events = append(rep.Events, evt)
 		}
 	}
-	return list
+
+	log.Info("Total after add ", len(rep.Events))
 }
 
 func (rep *Reprocessing) AbortedSplitEventsFailure() {
@@ -118,6 +132,8 @@ func (rep *Reprocessing) SetStatus(owner, status string) {
 
 func NewReprocessing(pendingEvent *domain.Event) *Reprocessing {
 	return &Reprocessing{
+		Tag:          pendingEvent.Tag,
+		Branch:       pendingEvent.Branch,
 		PendingEvent: pendingEvent,
 		SystemID:     pendingEvent.SystemID,
 		ID:           etc.GetUUID(),
@@ -153,34 +169,43 @@ func SaveReprocessing(reprocessing *Reprocessing) error {
 
 //GetReprocessing return reprocessing from process memory
 func GetReprocessing(reprocessingID string) (*Reprocessing, error) {
-	defer statusMut.Unlock()
-	statusMut.Lock()
-	sjson, err := sdk.GetDocument("reprocessing", map[string]string{"id": reprocessingID})
-	if err != nil {
-		return nil, err
-	}
-	rep := make([]*Reprocessing, 1)
-	err = json.Unmarshal([]byte(sjson), &rep)
-	if err != nil {
-		return nil, err
-	}
-	if len(rep) == 0 {
-		return nil, fmt.Errorf(fmt.Sprintf("no reprocessing found with id %s", reprocessingID))
-	}
-	return rep[0], nil
+	return GetReprocessingWithQuery(map[string]string{"id": reprocessingID})
 }
 
-//GetReprocessingBySystemIDWithStatus return reprocessing with systemId and status from process memory
-func GetReprocessingBySystemIDWithStatus(systemID, status string) ([]*Reprocessing, error) {
-	defer statusMut.Unlock()
-	statusMut.Lock()
-	sjson, err := sdk.GetDocument("reprocessing", map[string]string{"systemId": systemID, "status": status})
+//GetReprocessingWithQuery return reprocessing from process memory with general query
+func GetReprocessingWithQuery(query map[string]string) (*Reprocessing, error) {
+	reps, err := GetManyReprocessingWithQuery(query)
+	if err != nil {
+		return nil, err
+	}
+	if len(reps) == 0 {
+		return nil, fmt.Errorf("no reprocessing found")
+	}
+	return reps[0], nil
+}
+
+//GetManyReprocessingWithQuery return reprocessing from process memory with general query
+func GetManyReprocessingWithQuery(query map[string]string) ([]*Reprocessing, error) {
+	sjson, err := sdk.GetDocument("reprocessing", query)
 	if err != nil {
 		return nil, err
 	}
 	rep := make([]*Reprocessing, 0)
 	err = json.Unmarshal([]byte(sjson), &rep)
-	return rep, err
+	if err != nil {
+		return nil, err
+	}
+	return rep, nil
+}
+
+//GetReprocessingBySystemIDWithStatus return reprocessing with systemId and status from process memory
+func GetReprocessingBySystemIDWithStatus(systemID, status string) (*Reprocessing, error) {
+	return GetReprocessingWithQuery(map[string]string{"systemId": systemID, "status": status})
+}
+
+//GetReprocessingByIDWithStatus return reprocessing by id and status from process memory
+func GetReprocessingByIDWithStatus(id, status string) (*Reprocessing, error) {
+	return GetReprocessingWithQuery(map[string]string{"id": id, "status": status})
 }
 
 //GetStatusOfReprocessing return status of reprocessing from process memory

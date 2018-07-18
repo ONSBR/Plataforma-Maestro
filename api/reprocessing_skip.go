@@ -21,7 +21,7 @@ func reprocessingSkip(c echo.Context) error {
 		return err
 	}
 	if rep.IsPendingApproval() {
-		rep.Skipped(approver.User)
+		rep.Skip(approver.User)
 		log.Debug(fmt.Sprintf("reprocessing skipped by %s", approver.User))
 		return models.SaveReprocessing(rep)
 	}

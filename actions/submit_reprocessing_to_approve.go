@@ -19,7 +19,7 @@ func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*d
 
 	reprocessing.Origin = origin
 
-	reprocessing.Events = events
+	reprocessing.AddEvents(events)
 	err = sdk.SaveDocument("reprocessing", reprocessing)
 	if err != nil {
 		log.Error(err)

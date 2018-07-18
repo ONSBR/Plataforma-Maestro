@@ -6,12 +6,12 @@ import (
 )
 
 func eventGatekeeper(c echo.Context) error {
-	rep, err := models.GetReprocessingBySystemIDWithStatus(c.Param("systemId"), models.Running)
+	_, err := models.GetReprocessingBySystemIDWithStatus(c.Param("systemId"), models.Running)
 	if err != nil {
+		if err.Error() == "no reprocessing found" {
+			return c.NoContent(200)
+		}
 		return err
-	}
-	if len(rep) == 0 {
-		return c.NoContent(200)
 	}
 	return c.NoContent(403)
 }

@@ -56,6 +56,7 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 
 func handleExecutionPersistence(persistenceEvent *domain.Event) (err error) {
 	instances, err := actions.GetReprocessingInstances(persistenceEvent)
+	instances = actions.FilterReprocessingUnit(persistenceEvent, instances)
 	log.Debug("instances to reprocess ", instances)
 	events, err := actions.GetEventsFromInstances(instances)
 	if err != nil {
@@ -79,6 +80,7 @@ func handleExecutionPersistence(persistenceEvent *domain.Event) (err error) {
 
 func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 	instances, err := actions.GetReprocessingInstances(eventParsed)
+	instances = actions.FilterReprocessingUnit(eventParsed, instances)
 	if err == nil && len(instances) > 0 {
 		etc.LogDuration("appending reprocessing instances to reprocessing queue", func() {
 			log.Debug("get events from instances")
@@ -96,8 +98,7 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 				return
 			}
 			log.Debug("appending new reprocessing events")
-			events = reprocessing.RemoveDuplicates(events)
-			reprocessing.Append(events)
+			reprocessing.AddEvents(events)
 			err = models.SaveReprocessing(reprocessing)
 			if err == nil {
 				log.Debug("publishing new reprocessing events")

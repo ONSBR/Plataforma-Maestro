@@ -30,14 +30,15 @@ func DispatchReprocessing(reprocessing models.Reprocessing, lock bool) {
 		}
 	}
 	publisher := broker.GetPublisher()
+	reprocessing.Running(lock)
 	msg, _ := broker.GetMessageFrom(reprocessing)
+
 	publisher.Publish("reprocessing", reprocessing.SystemID, msg)
 
-	go StartReprocessing(reprocessing.SystemID, lock)
 }
 
 //StartReprocessing picks first reprocessing in queue
-func StartReprocessing(systemID string, lock bool) {
+func StartReprocessing(systemID string) {
 
 	log.Debug("starting reprocessing")
 	//Start reprocessing process
@@ -60,8 +61,6 @@ func StartReprocessing(systemID string, lock bool) {
 		}
 	}
 
-	log.Debug("set reprocessing to running")
-	reprocessing.Running(lock)
 	if err := models.SaveReprocessing(reprocessing); err != nil {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return

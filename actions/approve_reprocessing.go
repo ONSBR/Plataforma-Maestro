@@ -1,31 +1,24 @@
 package actions
 
 import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/ONSBR/Plataforma-EventManager/sdk"
-	"github.com/ONSBR/Plataforma-Maestro/etc"
 	"github.com/ONSBR/Plataforma-Maestro/models"
 )
 
 //ApproveReprocessing approve reprocessing
 func ApproveReprocessing(reprocessingID, user string, lock bool) (*models.Reprocessing, error) {
-	j, err := sdk.GetDocument("reprocessing", map[string]string{"id": reprocessingID, "status": "pending_approval"})
-	data := make([]models.Reprocessing, 0)
-	json.Unmarshal([]byte(j), &data)
+	reprocessing, err := models.GetReprocessingByIDWithStatus(reprocessingID, "pending_approval")
 	if err != nil {
 		return nil, err
 	}
-	if len(data) == 0 {
-		return nil, fmt.Errorf("reprocessing not found")
+	reprocessings, err := models.GetManyReprocessingWithQuery(map[string]string{"tag": reprocessing.Tag, "status": "pending_approval"})
+	for _, rep := range reprocessings {
+		rep.Approve(user)
+		err = models.SaveReprocessing(rep)
+		if err != nil {
+			return nil, err
+		}
+		DispatchReprocessing(*rep, lock)
 	}
-	status := "approved"
-	data[0].Status = status
-	data[0].HistoryStatus = append(data[0].HistoryStatus, models.ReprocessingStatus{User: user, Status: status, Timestamp: etc.GetStrTimestamp()})
-	if err := sdk.ReplaceDocument("reprocessing", map[string]string{"id": reprocessingID, "status": "pending_approval"}, data[0]); err != nil {
-		return nil, err
-	}
-	go DispatchReprocessing(data[0], lock)
-	return &data[0], nil
+	go StartReprocessing(reprocessing.SystemID)
+	return reprocessing, nil
 }
