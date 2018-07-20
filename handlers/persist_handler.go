@@ -98,11 +98,11 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 				return
 			}
 			log.Debug("appending new reprocessing events")
-			reprocessing.AddEvents(events)
+			newEvents := reprocessing.AddEvents(events)
 			err = models.SaveReprocessing(reprocessing)
 			if err == nil {
 				log.Debug("publishing new reprocessing events")
-				actions.SplitReprocessingEvents(reprocessing.ID, events)
+				actions.SplitReprocessingEvents(reprocessing.ID, newEvents)
 			}
 		})
 	}

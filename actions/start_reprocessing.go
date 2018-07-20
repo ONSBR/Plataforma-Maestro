@@ -42,14 +42,14 @@ func StartReprocessing(systemID string) {
 
 	log.Debug("starting reprocessing")
 	//Start reprocessing process
-	context, proceed, reprocessing := pickReprocessing(systemID)
+	context, proceed, reprocessing, err := pickReprocessing(systemID)
 	if !proceed {
 		log.Debug("reprocessing queue is empty or cannot get reprocessing")
 		return
 	}
 	defer context.Nack(true)
-	if reprocessing == nil {
-		log.Error("Reprocessing for system: ", systemID, " is nil")
+	if err != nil {
+		log.Error("Picking reprocessing for system: ", systemID, " has error: ", err)
 		return
 	}
 	errFnc := func(err error) {
@@ -83,22 +83,22 @@ func StartReprocessing(systemID string) {
 
 }
 
-func pickReprocessing(id string) (*carrot.MessageContext, bool, *models.Reprocessing) {
+func pickReprocessing(id string) (*carrot.MessageContext, bool, *models.Reprocessing, error) {
 	picker := broker.GetPicker()
 	queue := fmt.Sprintf(models.ReprocessingQueue, id)
 	context, isReprocessing, err := picker.Pick(queue)
 	if err != nil {
 		log.Error(err)
-		return nil, false, new(models.Reprocessing)
+		return nil, false, new(models.Reprocessing), err
 	}
 	if isReprocessing {
 		reprocessing := &models.Reprocessing{}
 		err := json.Unmarshal(context.Message.Data, reprocessing)
 		if err != nil {
 			log.Error(fmt.Sprintf("cannot unmarshall reprocessing"), err)
-			return context, false, nil
+			return context, false, nil, err
 		}
-		return context, true, reprocessing
+		return context, true, reprocessing, nil
 	}
-	return nil, false, new(models.Reprocessing)
+	return nil, false, new(models.Reprocessing), nil
 }

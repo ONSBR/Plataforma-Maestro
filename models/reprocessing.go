@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ONSBR/Plataforma-Discovery/util"
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-EventManager/sdk"
 	"github.com/ONSBR/Plataforma-Maestro/etc"
 	"github.com/PMoneda/carrot"
-	"github.com/labstack/gommon/log"
 )
 
 const Running string = "running"
@@ -41,6 +41,7 @@ type Reprocessing struct {
 	HistoryStatus []ReprocessingStatus `json:"history"`
 	Tag           string               `json:"tag"`
 	Branch        string               `json:"branch"`
+	Forking       bool                 `json:"forking"`
 }
 
 //ReprocessingStatus stores user actions over reprocessing
@@ -83,30 +84,24 @@ func (rep *Reprocessing) Running(lock bool) {
 
 }
 
-func (rep *Reprocessing) Append(events []*domain.Event) {
-	for _, event := range events {
-		rep.Events = append(rep.Events, event)
+func (rep *Reprocessing) AddEvents(events []*domain.Event) []*domain.Event {
+	newEvents := make([]*domain.Event, 0)
+	existingSet := util.NewStringSet()
+	for i := 0; i < len(rep.Events); i++ {
+		event := rep.Events[i]
+		existingSet.Add(event.InstanceID)
 	}
-}
-
-func (rep *Reprocessing) AddEvents(events []*domain.Event) {
-	if len(rep.Events) == 0 {
-		rep.Append(events)
-		return
-	}
-	log.Info("Total existing events: ", len(rep.Events))
-	log.Info("Total new events: ", len(events))
-	for _, event := range rep.Events {
-		for _, evt := range events {
-			if evt.Branch == event.Branch && evt.Tag == event.Tag {
-				log.Info("skipping event ", evt.Name, " branch=", evt.Branch, " tag=", evt.Tag)
-				continue
-			}
-			rep.Events = append(rep.Events, evt)
+	for j := 0; j < len(events); j++ {
+		if rep.Branch != "master" && events[j].Branch == "master" {
+			continue
+		}
+		if !existingSet.Exist(events[j].InstanceID) {
+			rep.Events = append(rep.Events, events[j])
+			newEvents = append(newEvents, events[j])
+			existingSet.Add(events[j].InstanceID)
 		}
 	}
-
-	log.Info("Total after add ", len(rep.Events))
+	return newEvents
 }
 
 func (rep *Reprocessing) AbortedSplitEventsFailure() {
@@ -137,6 +132,8 @@ func NewReprocessing(pendingEvent *domain.Event) *Reprocessing {
 		PendingEvent: pendingEvent,
 		SystemID:     pendingEvent.SystemID,
 		ID:           etc.GetUUID(),
+		Events:       make([]*domain.Event, 0),
+		Forking:      false,
 	}
 }
 
