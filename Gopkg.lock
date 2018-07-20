@@ -11,6 +11,12 @@
   revision = "111ada6454d32affd4f25da7c645baf327917912"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/ONSBR/Plataforma-Discovery"
+  packages = ["util"]
+  revision = "e069e2b16fb210b206b6c5635cb51ebb3c490286"
+
+[[projects]]
   branch = "feature/reprocessamento"
   name = "github.com/ONSBR/Plataforma-EventManager"
   packages = [
@@ -18,7 +24,7 @@
     "infra",
     "sdk"
   ]
-  revision = "fa0f05e54a00a837f6e4109001b007b824911395"
+  revision = "2f8c3ec3c50c83ffe7ee19c32aefcf6c51dc3051"
 
 [[projects]]
   branch = "master"
@@ -161,6 +167,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0de403542835a18cea8964011826ebc95037fa865855a4a97bdffef0b4392ed2"
+  inputs-digest = "ab61c0bbcf722d3e8812a51796616abd4a614ef33f9ce230576d5b57dead5184"
   solver-name = "gps-cdcl"
   solver-version = 1

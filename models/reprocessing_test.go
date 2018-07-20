@@ -2,7 +2,6 @@ package models
 
 import (
 	"testing"
-	"time"
 
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 
@@ -31,7 +30,7 @@ func TestShouldOrderEventsByTimestamp(t *testing.T) {
 		})
 
 		Convey("should parse event string date", func() {
-			time, err := time.Parse("2006-01-02T15:04:05.999", evt.Timestamp)
+			time, err := evt.GetTimestamp()
 			So(err, ShouldBeNil)
 			So(time.Year(), ShouldEqual, 2018)
 			So(time.Hour(), ShouldEqual, 15)

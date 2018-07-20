@@ -2,6 +2,7 @@ package domain
 
 import (
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -61,6 +62,12 @@ func (e *Event) IsEndingEvent() bool {
 //ToCeleryMessage transform event to a celery compatible message
 func (e *Event) ToCeleryMessage() *CeleryMessage {
 	return getCeleryMessage(e)
+}
+
+//GetTimestamp returns a parsed timestamp event value
+func (e *Event) GetTimestamp() (time.Time, error) {
+	t, err := time.Parse("2006-01-02T15:04:05.999", e.Timestamp)
+	return t, err
 }
 
 //ApplyDefaultFields apply default fields for branch, scope and tag
