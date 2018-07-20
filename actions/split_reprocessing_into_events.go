@@ -9,21 +9,17 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-//SplitReprocessingIntoEvents takes a reprocessing e publish all events to reprocessing queue
-func SplitReprocessingIntoEvents(reprocessing *models.Reprocessing) error {
-	return SplitReprocessingEvents(reprocessing.ID, reprocessing.Events)
-}
-
 //SplitReprocessingEvents takes a reprocessing e publish all events to reprocessing queue
-func SplitReprocessingEvents(reprocessingID string, events []*domain.Event) error {
+func SplitReprocessingEvents(reprocessing *models.Reprocessing, events []*domain.Event) error {
+	scope := "reprocessing"
 	for i := 0; i < len(events); i++ {
 		event := events[i]
 		originalInstance := event.InstanceID
 		event.InstanceID = ""
 		event.Tag = ""
-		event.Scope = "reprocessing"
+		event.Scope = scope
 		event.Reprocessing = new(domain.ReprocessingInfo)
-		event.Reprocessing.ID = reprocessingID
+		event.Reprocessing.ID = reprocessing.ID
 		event.Reprocessing.InstanceID = originalInstance
 		event.Reprocessing.Image = event.Image
 		event.Reprocessing.SystemID = event.SystemID

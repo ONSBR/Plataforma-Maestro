@@ -66,7 +66,7 @@ func StartReprocessing(systemID string) {
 		return
 	}
 	log.Debug("splitting reprocessing events")
-	if err := SplitReprocessingIntoEvents(reprocessing); err != nil {
+	if err := SplitReprocessingEvents(reprocessing, reprocessing.Events); err != nil {
 		reprocessing.AbortedSplitEventsFailure()
 		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
 		errFnc(err)

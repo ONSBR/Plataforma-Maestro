@@ -36,7 +36,7 @@ func MountReprocessingInfraBySystem(systemID string) error {
 
 	queue = fmt.Sprintf("backup_%s", systemID)
 	routingKey = fmt.Sprintf("#.backup_%s.#", systemID)
-	if err := broker.DeclareQueue("reprocessing", queue, routingKey); err != nil {
+	if err := broker.DeclareQueue("reprocessing-events", queue, routingKey); err != nil {
 		return err
 	}
 	return nil

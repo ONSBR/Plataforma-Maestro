@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/PMoneda/http"
-	"github.com/labstack/gommon/log"
 
 	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
 )
@@ -41,7 +40,6 @@ func PersistEntitiesByInstance(systemID, instanceID string) error {
 		return err
 	}
 	url := fmt.Sprintf("%s/instance/%s/persist", domainHost, instanceID)
-	log.Debug("Persisting in ", url)
 	if resp, err := http.Post(url, nil); err != nil {
 		return err
 	} else if !strings.Contains(string(resp.Body), "ok") {

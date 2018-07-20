@@ -89,19 +89,26 @@ func (rep *Reprocessing) AddEvents(events []*domain.Event) []*domain.Event {
 	existingSet := util.NewStringSet()
 	for i := 0; i < len(rep.Events); i++ {
 		event := rep.Events[i]
-		existingSet.Add(event.InstanceID)
+		existingSet.Add(event.InstanceID + event.Branch)
 	}
 	for j := 0; j < len(events); j++ {
 		if rep.Branch != "master" && events[j].Branch == "master" {
 			continue
 		}
-		if !existingSet.Exist(events[j].InstanceID) {
-			rep.Events = append(rep.Events, events[j])
+		if !existingSet.Exist(events[j].InstanceID + events[j].Branch) {
+
 			newEvents = append(newEvents, events[j])
-			existingSet.Add(events[j].InstanceID)
+			existingSet.Add(events[j].InstanceID + events[j].Branch)
 		}
 	}
+	rep.Sort(&newEvents)
+	rep.Events = append(rep.Events, newEvents...)
+
 	return newEvents
+}
+
+func (rep *Reprocessing) Sort(events *[]*domain.Event) {
+
 }
 
 func (rep *Reprocessing) AbortedSplitEventsFailure() {

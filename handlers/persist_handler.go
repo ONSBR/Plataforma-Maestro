@@ -42,10 +42,15 @@ func PersistHandler(context *carrot.MessageContext) (err error) {
 
 func handlePersistBySolution(eventParsed *domain.Event) error {
 	var err error
-	if eventParsed.IsExecution() {
+	origin, err := processmemory.GetEventByInstance(eventParsed.InstanceID)
+	if err != nil {
+		return err
+	}
+	isForking := eventParsed.Reprocessing != nil && eventParsed.Reprocessing.ID != ""
+	if eventParsed.IsExecution() && !isForking {
 		log.Debug("handle execution event")
-		err = handleExecutionPersistence(eventParsed)
-	} else if eventParsed.IsReprocessing() {
+		err = handleExecutionPersistence(eventParsed, origin)
+	} else if eventParsed.IsReprocessing() || isForking {
 		log.Debug("handle reprocessing event")
 		err = handleReprocessingPersistence(eventParsed)
 	} else {
@@ -54,7 +59,7 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 	return err
 }
 
-func handleExecutionPersistence(persistenceEvent *domain.Event) (err error) {
+func handleExecutionPersistence(persistenceEvent, origin *domain.Event) (err error) {
 	instances, err := actions.GetReprocessingInstances(persistenceEvent)
 	instances = actions.FilterReprocessingUnit(persistenceEvent, instances)
 	log.Debug("instances to reprocess ", instances)
@@ -62,10 +67,7 @@ func handleExecutionPersistence(persistenceEvent *domain.Event) (err error) {
 	if err != nil {
 		return err
 	}
-	origin, err := processmemory.GetEventByInstance(persistenceEvent.InstanceID)
-	if err != nil {
-		return err
-	}
+
 	if err == nil && len(events) > 0 {
 		etc.LogDuration("submiting to approve reprocessing", func() {
 			err = actions.SubmitReprocessingToApprove(persistenceEvent, origin, events)
@@ -102,7 +104,7 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 			err = models.SaveReprocessing(reprocessing)
 			if err == nil {
 				log.Debug("publishing new reprocessing events")
-				actions.SplitReprocessingEvents(reprocessing.ID, newEvents)
+				actions.SplitReprocessingEvents(reprocessing, newEvents)
 			}
 		})
 	}
@@ -118,7 +120,6 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 		log.Debug("pop control queue")
 		_, empty, err = broker.Pop(fmt.Sprintf(models.ReprocessingEventsControlQueue, eventParsed.SystemID))
 		if empty {
-			log.Debug("finalizing reprocessing")
 			err = actions.FinishReprocessing(eventParsed.SystemID)
 		} else {
 			log.Debug("keep running reprocessing")
