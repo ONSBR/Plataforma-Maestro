@@ -28,6 +28,7 @@ const ReprocessingErrorQueue = "reprocessing.%s.error.queue"
 type ReprocessingUnit struct {
 	Branch     string `json:"branch"`
 	InstanceID string `json:"instanceId"`
+	Forking    bool   `json:"forking"`
 }
 
 //Reprocessing handle data from discovery service
@@ -96,19 +97,12 @@ func (rep *Reprocessing) AddEvents(events []*domain.Event) []*domain.Event {
 			continue
 		}
 		if !existingSet.Exist(events[j].InstanceID + events[j].Branch) {
-
 			newEvents = append(newEvents, events[j])
 			existingSet.Add(events[j].InstanceID + events[j].Branch)
 		}
 	}
-	rep.Sort(&newEvents)
 	rep.Events = append(rep.Events, newEvents...)
-
 	return newEvents
-}
-
-func (rep *Reprocessing) Sort(events *[]*domain.Event) {
-
 }
 
 func (rep *Reprocessing) AbortedSplitEventsFailure() {

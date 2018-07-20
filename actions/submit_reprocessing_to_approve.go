@@ -34,6 +34,7 @@ func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*d
 	}
 	list := make([]map[string]interface{}, 0)
 	apicore.FindByID("processInstance", persistEvent.InstanceID, &list)
+	log.Info("new reprocessing pending to approve")
 	if len(list) > 0 {
 		isFork, ok := list[0]["isFork"]
 		if ok && isFork != nil && isFork.(bool) {

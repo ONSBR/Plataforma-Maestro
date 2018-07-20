@@ -18,7 +18,7 @@ import (
 
 //PersistHandler handle message from persist events
 func PersistHandler(context *carrot.MessageContext) (err error) {
-	log.Debug("received persist event")
+	//log.Debug("received persist event")
 	event, err := models.GetEventFromCeleryMessage(context)
 	if err != nil {
 		log.Error(err)
@@ -46,12 +46,11 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 	if err != nil {
 		return err
 	}
-	isForking := eventParsed.Reprocessing != nil && eventParsed.Reprocessing.ID != ""
-	if eventParsed.IsExecution() && !isForking {
-		log.Debug("handle execution event")
+	if eventParsed.IsExecution() {
+		//log.Debug("handle execution event")
 		err = handleExecutionPersistence(eventParsed, origin)
-	} else if eventParsed.IsReprocessing() || isForking {
-		log.Debug("handle reprocessing event")
+	} else if eventParsed.IsReprocessing() {
+		//log.Debug("handle reprocessing event")
 		err = handleReprocessingPersistence(eventParsed)
 	} else {
 		err = fmt.Errorf("invalid event's scope %s", eventParsed.Scope)
@@ -62,13 +61,13 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 func handleExecutionPersistence(persistenceEvent, origin *domain.Event) (err error) {
 	instances, err := actions.GetReprocessingInstances(persistenceEvent)
 	instances = actions.FilterReprocessingUnit(persistenceEvent, instances)
-	log.Debug("instances to reprocess ", instances)
+	//log.Debug("instances to reprocess ", instances)
 	events, err := actions.GetEventsFromInstances(instances)
 	if err != nil {
 		return err
 	}
-
 	if err == nil && len(events) > 0 {
+		events = actions.SortInstances(instances, events)
 		etc.LogDuration("submiting to approve reprocessing", func() {
 			err = actions.SubmitReprocessingToApprove(persistenceEvent, origin, events)
 		})
@@ -85,12 +84,12 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 	instances = actions.FilterReprocessingUnit(eventParsed, instances)
 	if err == nil && len(instances) > 0 {
 		etc.LogDuration("appending reprocessing instances to reprocessing queue", func() {
-			log.Debug("get events from instances")
+			//log.Debug("get events from instances")
 			events, err := actions.GetEventsFromInstances(instances)
 			if err != nil {
 				return
 			}
-			log.Debug("get reprocessing")
+			//log.Debug("get reprocessing")
 			reprocessing, err := models.GetReprocessing(eventParsed.Reprocessing.ID)
 			if err != nil {
 				return
@@ -99,11 +98,11 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 				err = fmt.Errorf("cannot proceed with this event because reprocessing is not running")
 				return
 			}
-			log.Debug("appending new reprocessing events")
+			//log.Debug("appending new reprocessing events")
 			newEvents := reprocessing.AddEvents(events)
 			err = models.SaveReprocessing(reprocessing)
 			if err == nil {
-				log.Debug("publishing new reprocessing events")
+				//log.Debug("publishing new reprocessing events")
 				actions.SplitReprocessingEvents(reprocessing, newEvents)
 			}
 		})
@@ -112,23 +111,23 @@ func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {
 		log.Error("Error occurred ", err)
 	}
 	if err == nil {
-		log.Debug("committing data to domain")
+		//log.Debug("committing data to domain")
 		etc.LogDuration("commiting data", func() {
 			err = appdomain.PersistEntitiesByInstance(eventParsed.SystemID, eventParsed.InstanceID)
 		})
 		var empty bool
-		log.Debug("pop control queue")
+		//log.Debug("pop control queue")
 		_, empty, err = broker.Pop(fmt.Sprintf(models.ReprocessingEventsControlQueue, eventParsed.SystemID))
 		if empty {
 			err = actions.FinishReprocessing(eventParsed.SystemID)
 		} else {
-			log.Debug("keep running reprocessing")
+			//log.Debug("keep running reprocessing")
 		}
 	}
 
 	if err == nil {
 		//get next to execute
-		log.Debug("get next event to reprocess")
+		//log.Debug("get next event to reprocess")
 		go actions.ReprocessEvent(eventParsed.SystemID)
 	}
 	return

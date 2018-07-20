@@ -73,7 +73,7 @@ func Init() {
 }
 
 func DeclareQueue(exchange, queue, routingKey string) error {
-	log.Debug(fmt.Sprintf("creating queue %s", queue))
+	//log.Debug(fmt.Sprintf("creating queue %s", queue))
 
 	if err := builder.DeclareTopicExchange(exchange); err != nil {
 		log.Error("Aborting reprocessing cannot declare exchange on rabbitmq: ", err)

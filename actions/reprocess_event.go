@@ -11,7 +11,7 @@ import (
 
 //ReprocessEvent takes a event to reprocess by system and emit event to event manager
 func ReprocessEvent(systemID string) {
-	log.Debug(fmt.Sprintf("Reprocessing event from %s", systemID))
+	//log.Debug(fmt.Sprintf("Reprocessing event from %s", systemID))
 	picker := broker.GetPicker()
 	context, ok, err := picker.Pick(fmt.Sprintf(models.ReprocessingEventsQueue, systemID))
 	if err != nil {
@@ -30,7 +30,7 @@ func ReprocessEvent(systemID string) {
 		return
 	}
 	defer context.Ack()
-	log.Debug("getting event to reprocess: ", len(context.Message.Data), " bytes")
+	//log.Debug("getting event to reprocess: ", len(context.Message.Data), " bytes")
 
 	event, err := models.GetEventFromContext(context)
 	if err != nil {
@@ -41,5 +41,5 @@ func ReprocessEvent(systemID string) {
 	if err != nil {
 		log.Error("cannot push event to event manager: ", err)
 	}
-	log.Debug(fmt.Sprintf("event %s publish to event manager", event.Name))
+	//log.Debug(fmt.Sprintf("event %s publish to event manager", event.Name))
 }

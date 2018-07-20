@@ -24,7 +24,7 @@
     "infra",
     "sdk"
   ]
-  revision = "2f8c3ec3c50c83ffe7ee19c32aefcf6c51dc3051"
+  revision = "cbd6de905587a0f2bb0a74d2b7205e719208b4da"
 
 [[projects]]
   branch = "master"

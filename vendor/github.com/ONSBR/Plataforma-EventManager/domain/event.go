@@ -18,6 +18,30 @@ var SystemEvents = []string{
 	"system.deploy.finished",
 }
 
+//Events ia a lista of pointers to Event that implements sort interface
+type Events []*Event
+
+func (s Events) Len() int {
+	return len(s)
+}
+func (s Events) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s Events) Less(i, j int) bool {
+	a := s[i]
+	b := s[j]
+	ta, err := a.GetTimestamp()
+	if err != nil {
+		return false
+	}
+	tb, err := b.GetTimestamp()
+	if err != nil {
+		return false
+	}
+
+	return tb.After(ta)
+}
+
 //Event define a basic platform event contract
 type Event struct {
 	Timestamp      string                 `json:"timestamp"`

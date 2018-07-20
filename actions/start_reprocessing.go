@@ -65,14 +65,14 @@ func StartReprocessing(systemID string) {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return
 	}
-	log.Debug("splitting reprocessing events")
+	///log.Debug("splitting reprocessing events")
 	if err := SplitReprocessingEvents(reprocessing, reprocessing.Events); err != nil {
 		reprocessing.AbortedSplitEventsFailure()
 		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
 		errFnc(err)
 		return
 	}
-	log.Debug("save pending commit to domain instance: ", reprocessing.PendingEvent.InstanceID)
+	//log.Debug("save pending commit to domain instance: ", reprocessing.PendingEvent.InstanceID)
 	if err := appdomain.PersistEntitiesByInstance(reprocessing.SystemID, reprocessing.PendingEvent.InstanceID); err != nil {
 		log.Error("cannot persist pending event on domain: ", err)
 		reprocessing.AbortedPersistDomainFailure()
