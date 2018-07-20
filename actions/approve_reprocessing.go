@@ -12,6 +12,7 @@ func ApproveReprocessing(reprocessingID, user string, lock bool) (*models.Reproc
 	}
 	reprocessings, err := models.GetManyReprocessingWithQuery(map[string]string{"tag": reprocessing.Tag, "status": "pending_approval"})
 	for _, rep := range reprocessings {
+		rep.Forking = !lock
 		rep.Approve(user)
 		err = models.SaveReprocessing(rep)
 		if err != nil {

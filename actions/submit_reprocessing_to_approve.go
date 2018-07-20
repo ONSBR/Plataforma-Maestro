@@ -37,7 +37,6 @@ func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*d
 	if len(list) > 0 {
 		isFork, ok := list[0]["isFork"]
 		if ok && isFork != nil && isFork.(bool) {
-			reprocessing.Forking = true
 			go ApproveReprocessing(reprocessing.ID, "platform:open_branch", false)
 		}
 	}
