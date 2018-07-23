@@ -26,11 +26,11 @@
 
 
 [[constraint]]
-  branch = "feature/reprocessamento"
+  branch = "master"
   name = "github.com/ONSBR/Plataforma-Deployer"
 
 [[constraint]]
-  branch = "feature/reprocessamento"
+  branch = "master"
   name = "github.com/ONSBR/Plataforma-EventManager"
 
 [[constraint]]
