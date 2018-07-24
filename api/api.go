@@ -19,6 +19,7 @@ func InitAPI() {
 	group := e.Group("/v1.0.0")
 	// Routes
 	group.GET("/reprocessing/:systemId/pending", getPendingReprocessing)
+	group.GET("/reprocessing/:systemId/find", queryReprocessing)
 	group.POST("/reprocessing/:id/approve", approveReprocessing)
 	group.POST("/reprocessing/:id/skip", reprocessingSkip)
 	group.GET("/gateway/:systemId/proceed", eventGatekeeper)
