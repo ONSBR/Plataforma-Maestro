@@ -7,6 +7,7 @@ import (
 
 	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
 
+	"github.com/ONSBR/Plataforma-Maestro/actions"
 	"github.com/ONSBR/Plataforma-Maestro/api"
 	"github.com/ONSBR/Plataforma-Maestro/broker"
 	"github.com/ONSBR/Plataforma-Maestro/handlers"
@@ -42,8 +43,11 @@ func main() {
 
 func startListenQueues() {
 	ids := getInstalledSystems()
-	ids = getInputQueues(ids)
-	subscribeQueues(ids)
+	queues := getInputQueues(ids)
+	subscribeQueues(queues)
+	for _, id := range ids {
+		go actions.StartReprocessing(id)
+	}
 }
 
 func getInstalledSystems() []string {
@@ -67,10 +71,11 @@ func getInstalledSystems() []string {
 }
 
 func getInputQueues(systems []string) []string {
-	for i := range systems {
-		systems[i] = fmt.Sprintf("persist.%s.queue", systems[i])
+	r := make([]string, len(systems))
+	for i, id := range systems {
+		r[i] = fmt.Sprintf("persist.%s.queue", id)
 	}
-	return systems
+	return r
 }
 
 func subscribeQueues(queues []string) {

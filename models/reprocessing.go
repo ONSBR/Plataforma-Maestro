@@ -14,6 +14,7 @@ import (
 
 const Running string = "running"
 const Approved string = "approved"
+const Failure string = "failure"
 const RunningWithoutLock string = "running_without_lock"
 const Finished string = "finished"
 const PendingApproval string = "pending_approval"
@@ -66,6 +67,10 @@ func (rep *Reprocessing) IsRunning() bool {
 
 func (rep *Reprocessing) Finish() {
 	rep.SetStatus("", Finished)
+}
+
+func (rep *Reprocessing) Failure() {
+	rep.SetStatus("", Failure)
 }
 
 func (rep *Reprocessing) Skip(owner string) {

@@ -2,10 +2,13 @@ package actions
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/ONSBR/Plataforma-Maestro/broker"
 	"github.com/ONSBR/Plataforma-Maestro/models"
 )
+
+var declareMut sync.Mutex
 
 //MountReprocessingInfraBySystem mounts rabbitmq infra to handle reprocessing by system
 func MountReprocessingInfraBySystem(systemID string) error {

@@ -52,7 +52,6 @@ func Init() {
 		conn, errC = carrot.NewBrokerClient(&config)
 		time.Sleep(5 * time.Second)
 	}
-
 	builder = carrot.NewBuilder(conn)
 	builder.DeclareTopicExchange("reprocessing_stack")
 	builder.DeclareQueue("persist.exception_q")
@@ -74,7 +73,6 @@ func Init() {
 
 func DeclareQueue(exchange, queue, routingKey string) error {
 	//log.Debug(fmt.Sprintf("creating queue %s", queue))
-
 	if err := builder.DeclareTopicExchange(exchange); err != nil {
 		log.Error("Aborting reprocessing cannot declare exchange on rabbitmq: ", err)
 		return err
@@ -122,5 +120,22 @@ func Pop(queue string) (data []byte, empty bool, err error) {
 		return
 	}
 
+	return
+}
+
+//Purge items from queue
+func Purge(queue string) (err error) {
+	for {
+		ctx, ok, err := picker.Pick(queue)
+		if err != nil {
+			break
+		}
+		if !ok {
+			break
+		}
+		if ok && ctx != nil {
+			ctx.Ack()
+		}
+	}
 	return
 }

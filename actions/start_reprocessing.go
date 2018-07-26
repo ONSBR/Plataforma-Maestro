@@ -16,7 +16,8 @@ import (
 
 var cache map[string]bool
 var once sync.Once
-var declareMut sync.Mutex
+var mutexes map[string]sync.Mutex
+var onceMutexex sync.Once
 
 //DispatchReprocessing dispatches an approved reprocessing to system queue
 func DispatchReprocessing(reprocessing models.Reprocessing, lock bool) {
@@ -39,7 +40,23 @@ func DispatchReprocessing(reprocessing models.Reprocessing, lock bool) {
 
 //StartReprocessing picks first reprocessing in queue
 func StartReprocessing(systemID string) {
-
+	onceMutexex.Do(func() {
+		mutexes = make(map[string]sync.Mutex)
+	})
+	if mutex, ok := mutexes[systemID]; !ok {
+		mu := sync.Mutex{}
+		mutexes[systemID] = mu
+		mu.Lock()
+		defer mu.Unlock()
+	} else {
+		mutex.Lock()
+		defer mutex.Unlock()
+	}
+	defer (func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	})()
 	log.Debug("starting reprocessing")
 	//Start reprocessing process
 	context, proceed, reprocessing, err := pickReprocessing(systemID)
@@ -47,17 +64,30 @@ func StartReprocessing(systemID string) {
 		log.Debug("reprocessing queue is empty or cannot get reprocessing")
 		return
 	}
+	if context == nil {
+		log.Error("context is null")
+		return
+	}
 	defer context.Nack(true)
 	if err != nil {
 		log.Error("Picking reprocessing for system: ", systemID, " has error: ", err)
 		return
 	}
-	errFnc := func(err error) {
-		if err := models.SetStatusReprocessing(reprocessing.ID, reprocessing.Status, ""); err != nil {
-			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", reprocessing.ID), err)
+	errFnc := func(err error, id, status string) {
+		if reprocessing == nil {
+			log.Error("cannot logging reprocessing is null")
+			return
 		}
-		if err := context.RedirectTo("reprocessing", fmt.Sprintf("error_%s", reprocessing.ID)); err != nil {
-			log.Error(fmt.Sprintf("cannot redirect reprocessing %s to error queue: ", reprocessing.ID), err)
+		if context == nil {
+			log.Error("context is null")
+			return
+		}
+		if err := models.SetStatusReprocessing(id, status, ""); err != nil {
+			log.Error(fmt.Sprintf("cannot set status aborted:persist-domain-failure on reprocessing %s: ", id), err)
+			return
+		}
+		if err := context.RedirectTo("reprocessing", fmt.Sprintf("error_%s", id)); err != nil {
+			log.Error(fmt.Sprintf("cannot redirect reprocessing %s to error queue: ", id), err)
 		}
 	}
 
@@ -67,16 +97,19 @@ func StartReprocessing(systemID string) {
 	}
 	///log.Debug("splitting reprocessing events")
 	if err := SplitReprocessingEvents(reprocessing, reprocessing.Events); err != nil {
-		reprocessing.AbortedSplitEventsFailure()
 		log.Error(fmt.Sprintf("cannot split event for reprocessing %s: ", reprocessing.ID), err)
-		errFnc(err)
+		go DropReprocessing(context, systemID)
+		reprocessing.AbortedSplitEventsFailure()
+		errFnc(err, reprocessing.ID, reprocessing.Status)
+
 		return
 	}
-	//log.Debug("save pending commit to domain instance: ", reprocessing.PendingEvent.InstanceID)
+	log.Debug("save pending commit to domain instance: ", reprocessing.PendingEvent.InstanceID)
 	if err := appdomain.PersistEntitiesByInstance(reprocessing.SystemID, reprocessing.PendingEvent.InstanceID); err != nil {
 		log.Error("cannot persist pending event on domain: ", err)
+		go DropReprocessing(context, systemID)
 		reprocessing.AbortedPersistDomainFailure()
-		errFnc(err)
+		errFnc(err, reprocessing.ID, reprocessing.Status)
 		return
 	}
 	go ReprocessEvent(systemID)
@@ -88,6 +121,7 @@ func pickReprocessing(id string) (*carrot.MessageContext, bool, *models.Reproces
 	queue := fmt.Sprintf(models.ReprocessingQueue, id)
 	context, isReprocessing, err := picker.Pick(queue)
 	if err != nil {
+		log.Error("erro on picking data on queue: ", queue)
 		log.Error(err)
 		return nil, false, new(models.Reprocessing), err
 	}
