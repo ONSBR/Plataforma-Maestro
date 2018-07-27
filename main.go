@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/ONSBR/Plataforma-Deployer/sdk/apicore"
 
@@ -45,7 +46,11 @@ func startListenQueues() {
 	ids := getInstalledSystems()
 	queues := getInputQueues(ids)
 	subscribeQueues(queues)
-	for _, id := range ids {
+	restartReprocessing(ids)
+}
+
+func restartReprocessing(systems []string) {
+	for _, id := range systems {
 		go actions.StartReprocessing(id)
 	}
 }
@@ -55,14 +60,20 @@ func getInstalledSystems() []string {
 		ID string `json:"id"`
 	}
 	list := make([]system, 0)
-	err := apicore.Query(apicore.Filter{
-		Map:    "core",
-		Entity: "system",
-		Name:   "",
-	}, &list)
-	if err != nil {
-		panic(err)
+	for {
+		err := apicore.Query(apicore.Filter{
+			Map:    "core",
+			Entity: "system",
+			Name:   "",
+		}, &list)
+		if err == nil {
+			break
+		} else {
+			log.Error("cannot connect to apicore retry in 10 seconds...")
+			time.Sleep(10 * time.Second)
+		}
 	}
+
 	ids := make([]string, len(list))
 	for i, v := range list {
 		ids[i] = v.ID
