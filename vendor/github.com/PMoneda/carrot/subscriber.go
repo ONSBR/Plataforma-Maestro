@@ -1,6 +1,8 @@
 package carrot
 
 import (
+	"fmt"
+
 	"github.com/streadway/amqp"
 )
 
@@ -9,16 +11,41 @@ type Subscriber struct {
 	client *BrokerClient
 }
 
+const picker = "picker"
+const subscriber = "subscriber"
+const publisher = "publisher"
+
 //MessageContext manager received message from rabbit and ack process
 type MessageContext struct {
-	Message    Message
-	delivery   amqp.Delivery
-	subscriber *Subscriber
+	Message       Message
+	delivery      amqp.Delivery
+	channel       *amqp.Channel
+	componentType string
+	subscriber    *Subscriber
 }
 
 //Ack message to server
 func (ctx *MessageContext) Ack() error {
-	return ctx.delivery.Ack(false)
+	err := ctx.delivery.Ack(false)
+	if err != nil {
+		return err
+	}
+	if ctx.isPicker() {
+		return ctx.channel.Close()
+	}
+	return nil
+}
+
+func (ctx *MessageContext) isPicker() bool {
+	return ctx.componentType == picker
+}
+
+func (ctx *MessageContext) isPublisher() bool {
+	return ctx.componentType == publisher
+}
+
+func (ctx *MessageContext) isSubscriber() bool {
+	return ctx.componentType == subscriber
 }
 
 //Nack message to server if requeue = true the message will be sent to same queue
@@ -53,21 +80,8 @@ type SubscribeWorker struct {
 //Subscribe binds a worker to queue on Rabbit
 func (sub *Subscriber) Subscribe(worker SubscribeWorker) error {
 	var i uint = 0
-	messageHandler := func(worker SubscribeWorker, msgsChan <-chan amqp.Delivery) {
-		for message := range msgsChan {
-			context := new(MessageContext)
-			context.Message = Message{
-				ContentType: message.ContentType,
-				Data:        message.Body,
-				Encoding:    message.ContentEncoding,
-			}
-			context.delivery = message
-			context.subscriber = sub
-			worker.Handler(context)
-		}
-	}
 	for i = 0; i < worker.Scale; i++ {
-		ch, err := sub.client.Channel()
+		ch, err := sub.client.client.Channel()
 		if err == nil {
 			msgs, err := ch.Consume(
 				worker.Queue,   // queue
@@ -79,14 +93,53 @@ func (sub *Subscriber) Subscribe(worker SubscribeWorker) error {
 				nil,            // args
 			)
 			if err == nil {
-				go messageHandler(worker, msgs)
+				go messageHandler(worker, msgs, ch, sub)
 			}
-		} else {
-			sub.client.channel = nil
-			i--
 		}
 	}
 	return nil
+}
+func messageHandler(worker SubscribeWorker, msgsChan <-chan amqp.Delivery, channel *amqp.Channel, sub *Subscriber) {
+	notifyCloseChannel := channel.NotifyClose(make(chan *amqp.Error))
+	notifyClientConnectionClose := sub.client.client.NotifyClose(make(chan *amqp.Error))
+	for {
+		select { //check connection
+		case <-notifyClientConnectionClose:
+			fmt.Println("Closed client connection")
+			break
+		case <-notifyCloseChannel:
+			//work with error
+			fmt.Println("Closed Channel recover connection")
+			ch, err := sub.client.client.Channel()
+			if err == nil {
+				msgs, err := ch.Consume(
+					worker.Queue,   // queue
+					"",             // consumer
+					worker.AutoAck, // auto-ack
+					false,          // exclusive
+					false,          // no-local
+					false,          // no-wait
+					nil,            // args
+				)
+				if err == nil {
+					go messageHandler(worker, msgs, ch, sub)
+				}
+			}
+			break //reconnect
+		case message := <-msgsChan:
+			context := new(MessageContext)
+			context.channel = channel
+			context.Message = Message{
+				ContentType: message.ContentType,
+				Data:        message.Body,
+				Encoding:    message.ContentEncoding,
+			}
+			context.delivery = message
+			context.subscriber = sub
+			worker.Handler(context)
+		}
+	}
+
 }
 
 //NewSubscriber creates a new Subscriber for Rabbit

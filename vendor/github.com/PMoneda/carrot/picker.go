@@ -15,6 +15,7 @@ func (get *Picker) Pick(queue string) (*MessageContext, bool, error) {
 		} else if ok {
 			context := new(MessageContext)
 			context.delivery = msg
+			context.channel = ch
 			context.Message = Message{
 				ContentType: msg.ContentType,
 				Data:        msg.Body,

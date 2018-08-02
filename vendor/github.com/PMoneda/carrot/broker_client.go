@@ -32,7 +32,6 @@ func (broker *BrokerClient) connectoToAPI() (err error) {
 //Channel return amqp channel with reconnect capabilities
 func (broker *BrokerClient) Channel() (ch *amqp.Channel, err error) {
 	ch, err = broker.client.Channel()
-	broker.channel = ch
 	return
 }
 
