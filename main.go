@@ -91,9 +91,10 @@ func getInputQueues(systems []string) []string {
 
 func subscribeQueues(queues []string) {
 	for _, q := range queues {
+		log.Info("subscribind on queue: ", q)
 		err := handlers.SubscribeToReceiveEventsBySystem(q)
 		if err != nil {
-			panic(err)
+			log.Error("Error on subscribing: ", err)
 		}
 	}
 

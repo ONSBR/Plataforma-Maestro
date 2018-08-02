@@ -18,25 +18,27 @@ import (
 
 //PersistHandler handle message from persist events
 func PersistHandler(context *carrot.MessageContext) (err error) {
-	//log.Debug("received persist event")
+	log.Info("received persist event")
 	event, err := models.GetEventFromCeleryMessage(context)
 	if err != nil {
 		log.Error(err)
 		context.RedirectTo("events.publish_error", "exception")
 		return context.Ack()
 	}
+	log.Info("Processing persist by solution")
 	err = handlePersistBySolution(event)
 	if err == nil {
-		context.Ack()
+		err = context.Ack()
 	} else {
 		log.Error(err)
 		if err := context.RedirectTo("persist_error", event.SystemID); err != nil {
-			log.Error("cannot redirect to error queue")
-			context.Nack(true)
+			log.Error("cannot redirect to error queue: ", err)
+			err = context.Nack(true)
 		} else {
-			context.Ack()
+			err = context.Ack()
 		}
 	}
+
 	return
 }
 
@@ -47,10 +49,10 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 		return err
 	}
 	if eventParsed.IsExecution() {
-		//log.Debug("handle execution event")
+		log.Info("handle execution event")
 		err = handleExecutionPersistence(eventParsed, origin)
 	} else if eventParsed.IsReprocessing() {
-		//log.Debug("handle reprocessing event")
+		log.Info("handle reprocessing event")
 		err = handleReprocessingPersistence(eventParsed)
 	} else {
 		err = fmt.Errorf("invalid event's scope %s", eventParsed.Scope)

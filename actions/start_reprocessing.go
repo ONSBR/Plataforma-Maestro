@@ -40,6 +40,11 @@ func DispatchReprocessing(reprocessing models.Reprocessing, lock bool) {
 
 //StartReprocessing picks first reprocessing in queue
 func StartReprocessing(systemID string) {
+	defer (func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	})()
 	onceMutexex.Do(func() {
 		mutexes = make(map[string]sync.Mutex)
 	})
@@ -52,11 +57,7 @@ func StartReprocessing(systemID string) {
 		mutex.Lock()
 		defer mutex.Unlock()
 	}
-	defer (func() {
-		if r := recover(); r != nil {
-			fmt.Println("Recovered in f", r)
-		}
-	})()
+
 	log.Debug("starting reprocessing")
 	//Start reprocessing process
 	context, proceed, reprocessing, err := pickReprocessing(systemID)
