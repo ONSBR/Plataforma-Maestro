@@ -39,6 +39,14 @@ func EventBindings(eventName string) ([]*domain.Operation, error) {
 	return arr, err
 }
 
+//EventBindingsByVersion any operation that have inbound or outbound event binding with same name and same version
+func EventBindingsByVersion(eventName, version string) ([]*domain.Operation, error) {
+	url := fmt.Sprintf("%s/operation?filter=bindingEventAndVersion&event=%s&version=%s", getUrl(), eventName, version)
+	arr := make([]*domain.Operation, 0, 0)
+	err := http.GetJSON(url, &arr)
+	return arr, err
+}
+
 //EventHasBindings verify if exist any operation that have inbound or outbound event binding with same name
 func EventHasBindings(eventName string) (bool, error) {
 	arr, err := EventBindings(eventName)
