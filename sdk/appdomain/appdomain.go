@@ -69,7 +69,7 @@ func getDomainHost(systemID string) (string, error) {
 	}
 	if len(result) > 0 {
 		obj := result[0]
-		return fmt.Sprintf("http://%s:%d", obj["host"], uint(obj["port"].(float64))), nil
+		return fmt.Sprintf("http://maestro-%s:%d", obj["host"], uint(obj["port"].(float64))), nil
 	}
 	return "", fmt.Errorf("no app found for %s id", systemID)
 }
