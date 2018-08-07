@@ -1,37 +1,79 @@
-# Plataforma-Maestro
-Maestro é um componente de plataforma para orquestrar o processo de persistência e reprocessamento da plataforma
+### Maestro
 
-Fluxo Inicial de persistência:
+Maestro é o componente de plataforma responsável por orquestrar a parte de persistência no domain, levando em consideração a necessidade de reprocessamento. Além disso, ele também faz a orquerstração de todo o processo de reprocessamento
 
-![fluxo-01](https://www.planttext.com/plantuml/img/TP4zRiCm38LtdOAZSmLdQ8QcG8OMGTAn2slHAG5PSaHPIC_JeGV9nKh9HMkaAA51uC_x7gMD98nf6fmnYPCZU73J9S3ESyVeO6V99-wvGq1ueev4sA8bq7EWCOQImK6R0hnuU4II50CSAMRkI5F6L80nxK6dNmcskJRh_9wYi2JoIbeR3UwXUQO1uetmIBxOg53KKiRhv_KZtAqWlP67HdXO6T1eJnD6Yq0_Z77103yD23qxB1KIhIcNd10qNlMgHhkda-ugm5wDbp61yrJGMPq9nOKxgpKVu9wb2vdUrzL3MM9xASobn8WH5vFnhtT52xgiBdyz_lSGCgDkh1U9uooXfiA0xB_xlEM-tinyBI4fZCPiDA6V_mK0 "Fluxo Inicial")
+### Build
 
+O build da aplicação é feito através de um arquivo Makefile, para buildar a aplicação execute o seguinte comando:
 
-Fluxo-02: Para verificar se existe um reprocessamento pendente:
-![fluxo-02](https://www.planttext.com/plantuml/img/VP0nRiCm34LtdkAFpb2WwEWEoPIfdGfaogBONmWBMJ8asV1zCWJeDNonCCbMeEL4yk7pazoLwdATXY1IjGPY7wOblRo-jJWmgzVEeH2L0pB7d3gMuWR6cZ0ozfOGFU4CpMwzhfU4OyIdOwavuOjvrexM4daOYRGVwmySl0Pt5_urz5r4FHekMimXdRvfC3vrsmtgcH5DqM4Zi6YpuMmu_JEGmGvfegtuInId40p7NlrzpJIAxAoofzm0 "Fluxo para verificar se existe reprocessamento pendente")
+```sh
+$ make
+```
 
-Fluxo-03: Aprovar um reprocessamento para início imediato
+Após executar o make será criada uma pasta dist e o executável da aplicação maestro.
 
-![Fluxo-03](https://www.planttext.com/plantuml/img/bP2zYW9H38NxF4NAtK8GjXiBjH4i166nsoRCH0pSkRdatfdrTMIBVP1vCUDF8Ig2NVxETyYPvK9MkZO052c1SH6wlOx6NnNEasbFm__mfzWe6djVSyxKSYoAFn5NnBcOuZTRBpNx2E3C0wWskHiE9efqng1YCcbPx97K46ub4FP2E5yl9wvUQthccJWsNh2V-8gfG9KfE5sY-yRQ0OcCRdI6yKfl-1utUKzTQ_HdWvjVlF5t9nxO1-yb5tu1cNx2AHTD03D_mCC-0W00)
+### Deploy
 
+O processo de deploy do maestro na plataforma é feito através do installer, os componentes em Go são compilados e comitados dentro do installer então para atualizar a versão do maestro para atualizar a versão do maestro na plataforma utilize o seguinte comando:
 
+```sh
+$ mv dist/maestro ~/installed_plataforma/Plataforma-Installer/Dockerfiles
+$ plataforma --upgrade maestro
+```
 
+### API
 
+Retornar a lista de reprocessamentos pendentes por sitema
+```http
+GET /v1.0.0/reprocessing/<solution_id>/pending HTTP/1.1
+Host: localhost:6971
+```
 
-### Próximos Passos
+Aprovar um reprocessamento
+```http
+POST /v1.0.0/reprocessing/<reprocessing_id>/approve HTTP/1.1
+Host: localhost:6971
+Content-Type: application/json
 
-- [x] Instalar Maestro na Plataforma
-- [x] Conectar o Maestro ao Rabbit
-- [x] Receber os eventos de persistência da Plataforma
-- [x] Levantar uma API básica
-- [x] Implementar um endpoint no domain para retornar a lista de entidades baseada na instancia do processo
-- [x] Integrar com o Discovery para capturar as instancias que deverão ser reprocessadas
-- [x] Implementar o serviço que permita ao admin e iniciar um reprocessamento
-- [x] Implementar o serviço que permita ao admin ignorar um reprocessamento e por consequência ignorar um commit
-- [x] Publicar instancias que deverão ser reprocessadas na fila de reprocessamento
-- [x] API de check de bloqueio da Plataforma por sistema
-- [x] Bloquear as execuções de persistência enquanto um reprocessamento estiver em execução
-- [x] Faz o bloqueio de novos eventos no EventManager quando um reprocessamento está em execução
-- [x] Incrementa a fila de reprocessamento com novos eventos (Reprocessamento em Cascata)
-- [x] Incrementa o documento de reprocessamento com novos eventos (Reprocessamento em Cascata)
-- [x] Fazer a persistência no domain quando oportuno
+{
+  "user":"<usuário aprovador>"
+}
+```
 
+Ignorar um reprocessamento
+
+```http
+POST /v1.0.0/reprocessing/<reprocessing_id>/skip HTTP/1.1
+Host: localhost:6971
+Content-Type: application/json
+
+{
+  "user":"<usuário que ignorou>"
+}
+```
+
+Verificar se a plataforma está habilitada para receber eventos
+
+```http
+GET /v1.0.0/gateway/<solution_id>/proceed HTTP/1.1
+Host: localhost:6971
+```
+
+### Organização do código
+
+1. actions
+    * São as principais ações do serviço, por exemplo, aprovar um reprocessamento, comitar a instância no domínio dentre outras
+2. api
+    * É a declaração da API do maestro;
+3. broker
+    * É onde está implementado a integração com o rabbitmq, este pacote contém as ações básicas de operação do broker;
+4. etc
+    * Pacote de funções utilitárias
+5. handlers
+    * Os handlers são os componentes que plugam no broker
+6. models
+    * Define o modelo de domínio usado pelo maestro
+7. sdk
+    * Implementa algumas chamadas de serviços da plataforma
+8. vendor
+    * É um pacote do Go onde ficam todas as bibliotecas de terceiros, os arquivos deste pacote jamais devem ser alterados diretamente;
