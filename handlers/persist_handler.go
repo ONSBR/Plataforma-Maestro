@@ -57,6 +57,13 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 	} else {
 		err = fmt.Errorf("invalid event's scope %s", eventParsed.Scope)
 	}
+	if err != nil {
+		log.Error(err)
+		err1 := actions.EmitErrorEvent(eventParsed, err)
+		if err1 != nil {
+			log.Error(err1)
+		}
+	}
 	return err
 }
 

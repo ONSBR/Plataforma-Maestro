@@ -2,7 +2,6 @@ package actions
 
 import (
 	"github.com/ONSBR/Plataforma-EventManager/domain"
-	"github.com/labstack/gommon/log"
 
 	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
 )
@@ -10,7 +9,6 @@ import (
 //ProceedToCommit process commiting to domain events by solution
 func ProceedToCommit(event *domain.Event) error {
 	if err := appdomain.PersistEntitiesByInstance(event.SystemID, event.InstanceID); err != nil {
-		log.Error(err)
 		return err
 	}
 	return nil
