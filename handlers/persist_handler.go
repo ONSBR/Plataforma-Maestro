@@ -26,7 +26,7 @@ func PersistHandler(context *carrot.MessageContext) (err error) {
 		return context.Ack()
 	}
 	log.Info("Processing persist by solution")
-	err = handlePersistBySolution(event)
+	_, err = HandlePersistBySolution(event)
 	if err == nil {
 		err = context.Ack()
 	} else {
@@ -42,15 +42,16 @@ func PersistHandler(context *carrot.MessageContext) (err error) {
 	return
 }
 
-func handlePersistBySolution(eventParsed *domain.Event) error {
+func HandlePersistBySolution(eventParsed *domain.Event) (*models.Reprocessing, error) {
 	var err error
+	var reprocessing *models.Reprocessing
 	origin, err := processmemory.GetEventByInstance(eventParsed.InstanceID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if eventParsed.IsExecution() {
 		log.Info("handle execution event")
-		err = handleExecutionPersistence(eventParsed, origin)
+		reprocessing, err = handleExecutionPersistence(eventParsed, origin)
 	} else if eventParsed.IsReprocessing() {
 		log.Info("handle reprocessing event")
 		err = handleReprocessingPersistence(eventParsed)
@@ -64,28 +65,29 @@ func handlePersistBySolution(eventParsed *domain.Event) error {
 			log.Error(err1)
 		}
 	}
-	return err
+	return reprocessing, err
 }
 
-func handleExecutionPersistence(persistenceEvent, origin *domain.Event) (err error) {
+func handleExecutionPersistence(persistenceEvent, origin *domain.Event) (*models.Reprocessing, error) {
 	instances, err := actions.GetReprocessingInstances(persistenceEvent)
 	instances = actions.FilterReprocessingUnit(persistenceEvent, instances)
+	var reprocessing *models.Reprocessing
 	//log.Debug("instances to reprocess ", instances)
 	events, err := actions.GetEventsFromInstances(instances)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err == nil && len(events) > 0 {
 		events = actions.SortInstances(instances, events)
 		etc.LogDuration("submiting to approve reprocessing", func() {
-			err = actions.SubmitReprocessingToApprove(persistenceEvent, origin, events)
+			reprocessing, err = actions.SubmitReprocessingToApprove(persistenceEvent, origin, events)
 		})
 	} else if err == nil {
 		etc.LogDuration("commiting data", func() {
 			err = actions.ProceedToCommit(persistenceEvent)
 		})
 	}
-	return
+	return reprocessing, err
 }
 
 func handleReprocessingPersistence(eventParsed *domain.Event) (err error) {

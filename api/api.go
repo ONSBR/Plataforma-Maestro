@@ -8,6 +8,8 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
+type H map[string]interface{}
+
 //InitAPI starts web api for maestro
 func InitAPI() {
 	e := echo.New()
@@ -24,6 +26,7 @@ func InitAPI() {
 	group.POST("/reprocessing/:id/skip", reprocessingSkip)
 	group.GET("/gateway/:systemId/proceed", eventGatekeeper)
 	group.POST("/handler/persist", startSystemPersistHandler)
+	group.POST("/persist/sync", syncPersist)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
 }

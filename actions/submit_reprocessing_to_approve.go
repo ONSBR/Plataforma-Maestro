@@ -12,22 +12,22 @@ import (
 )
 
 //SubmitReprocessingToApprove block persistence on domain until reprocessing will be approve
-func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*domain.Event) (err error) {
+func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*domain.Event) (*models.Reprocessing, error) {
 	reprocessing := models.NewReprocessing(persistEvent)
 	reprocessing.PendingApproval()
 
 	reprocessing.Origin = origin
 
 	reprocessing.AddEvents(events)
-	err = sdk.SaveDocument("reprocessing", reprocessing)
+	err := sdk.SaveDocument("reprocessing", reprocessing)
 	if err != nil {
 		log.Error(err)
-		return
+		return nil, err
 	}
 	err = sdk.UpdateProcessInstance(persistEvent.InstanceID, "reprocessing_pending_approval")
 	if err != nil {
 		log.Error(err)
-		return
+		return nil, err
 	}
 	if os.Getenv(fmt.Sprintf("AUTO_REPROCESSING_%s", persistEvent.SystemID)) != "" {
 		go ApproveReprocessing(reprocessing.ID, "platform", true)
@@ -41,5 +41,5 @@ func SubmitReprocessingToApprove(persistEvent, origin *domain.Event, events []*d
 			go ApproveReprocessing(reprocessing.ID, "platform:open_branch", false)
 		}
 	}
-	return
+	return reprocessing, nil
 }
