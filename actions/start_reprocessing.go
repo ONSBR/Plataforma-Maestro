@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ONSBR/Plataforma-EventManager/domain"
+
 	"github.com/ONSBR/Plataforma-Maestro/sdk/appdomain"
+	"github.com/ONSBR/Plataforma-Maestro/sdk/eventmanager"
 
 	"github.com/PMoneda/carrot"
 	"github.com/labstack/gommon/log"
@@ -91,7 +94,14 @@ func StartReprocessing(systemID string) {
 			log.Error(fmt.Sprintf("cannot redirect reprocessing %s to error queue: ", id), err)
 		}
 	}
-
+	evt := new(domain.Event)
+	evt.Name = fmt.Sprintf("%s.reprocessing.starting", systemID)
+	evt.Payload = make(map[string]interface{})
+	evt.Payload["reprocessing"] = reprocessing
+	if err := eventmanager.Push(evt); err != nil {
+		log.Error("cannot emit starting reprocessing event: ", err.Error())
+		return
+	}
 	if err := models.SaveReprocessing(reprocessing); err != nil {
 		log.Error("cannot update reprocessing on process memory: ", err)
 		return

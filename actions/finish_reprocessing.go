@@ -3,8 +3,10 @@ package actions
 import (
 	"fmt"
 
+	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-Maestro/broker"
 	"github.com/ONSBR/Plataforma-Maestro/models"
+	"github.com/ONSBR/Plataforma-Maestro/sdk/eventmanager"
 	"github.com/labstack/gommon/log"
 )
 
@@ -36,5 +38,13 @@ func FinishReprocessing(systemID string) error {
 		return err
 	}
 	reprocessing.Finish()
-	return models.SaveReprocessing(reprocessing)
+	if err := models.SaveReprocessing(reprocessing); err != nil {
+		return err
+	}
+	evt := new(domain.Event)
+	evt.Name = fmt.Sprintf("%s.reprocessing.finished", systemID)
+	evt.Payload = make(map[string]interface{})
+	evt.Payload["reprocessing"] = reprocessing
+	go StartReprocessing(systemID)
+	return eventmanager.Push(evt)
 }
