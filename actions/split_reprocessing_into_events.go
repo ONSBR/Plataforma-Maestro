@@ -21,7 +21,6 @@ func SplitReprocessingEvents(reprocessing *models.Reprocessing, events []*domain
 		event.Reprocessing = new(domain.ReprocessingInfo)
 		event.Reprocessing.ID = reprocessing.ID
 		event.Reprocessing.InstanceID = originalInstance
-		event.Reprocessing.Image = event.Image
 		event.Reprocessing.SystemID = event.SystemID
 		if event.Reprocessing.InstanceID == "" {
 			//TODO encontrar a causa para não ter que tratar o efeito
