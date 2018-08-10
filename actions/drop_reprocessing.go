@@ -17,6 +17,13 @@ var oneDropAtTime sync.Mutex
 
 //DropReprocessing remove reprocessing and events from queues
 func DropReprocessing(errorContext *carrot.MessageContext, systemID string) {
+	errorContext.Nack(true)
+	if err := CleanUpFailureReprocessing(systemID); err != nil {
+		log.Error(err)
+	}
+}
+
+func CleanUpFailureReprocessing(systemID string) error {
 	oneDropAtTime.Lock()
 	defer oneDropAtTime.Unlock()
 	defer (func() {
@@ -24,48 +31,36 @@ func DropReprocessing(errorContext *carrot.MessageContext, systemID string) {
 			log.Error(err)
 		}
 	})()
-	errorContext.Nack(true)
 	context, proceed, reprocessing, err := pickReprocessing(systemID)
 	if err != nil {
-		log.Error(err)
-		return
+		return err
 	}
 	if !proceed {
-		log.Debug("reprocessing queue is empty or cannot get reprocessing")
-		return
+		return fmt.Errorf("reprocessing queue is empty or cannot get reprocessing")
 	}
 	if context == nil {
-		log.Error("context is null")
-		return
+		return fmt.Errorf("context is null")
 	}
-
-	if reprocessing != nil {
-		evt := new(domain.Event)
-		evt.Name = fmt.Sprintf("%s.reprocessing.droping", systemID)
-		evt.Payload = make(map[string]interface{})
-		evt.Payload["reprocessing"] = reprocessing
-		if err := eventmanager.Push(evt); err != nil {
-			log.Error("cannot notify reprocessing drop action ", err.Error())
-		}
-		queue := fmt.Sprintf(models.ReprocessingEventsQueue, systemID)
-		err := broker.Purge(queue)
-		if err != nil {
-			log.Error(err)
-			context.Nack(true)
-			return
-		}
-		queue = fmt.Sprintf(models.ReprocessingEventsControlQueue, systemID)
-		if err := broker.Purge(queue); err != nil {
-			log.Error(err)
-			context.Nack(true)
-			return
-		}
-		reprocessing.Failure()
-		if err := models.SaveReprocessing(reprocessing); err != nil {
-			log.Error(err)
-			context.Nack(true)
-			return
-		}
+	evt := new(domain.Event)
+	evt.Name = fmt.Sprintf("%s.reprocessing.droping", systemID)
+	evt.Payload = make(map[string]interface{})
+	evt.Payload["reprocessing"] = reprocessing
+	if err := eventmanager.Push(evt); err != nil {
+		log.Error("cannot notify reprocessing drop action ", err.Error())
 	}
-	context.Ack()
+	queue := fmt.Sprintf(models.ReprocessingEventsQueue, systemID)
+	err = broker.Purge(queue)
+	if err != nil {
+		return err
+	}
+	queue = fmt.Sprintf(models.ReprocessingEventsControlQueue, systemID)
+	if err := broker.Purge(queue); err != nil {
+		return err
+	}
+	reprocessing.Failure()
+	if err := models.SaveReprocessing(reprocessing); err != nil {
+		log.Error(err)
+		return err
+	}
+	return nil
 }

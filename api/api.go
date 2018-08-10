@@ -27,6 +27,7 @@ func InitAPI() {
 	group.GET("/gateway/:systemId/proceed", eventGatekeeper)
 	group.POST("/handler/persist", startSystemPersistHandler)
 	group.POST("/persist/sync", syncPersist)
+	group.POST("/reprocessing/failure", reprocessingFailure)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
 }
