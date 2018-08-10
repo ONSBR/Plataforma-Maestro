@@ -15,7 +15,7 @@ func syncPersist(c echo.Context) error {
 	}
 	reprocessing, err := handlers.HandlePersistBySolution(event)
 	if err != nil {
-		return err
+		log.Error("error returned on persist: ", err)
 	}
 	if reprocessing != nil {
 		return c.JSON(200, H{"status": "reprocessing_request", "reprocessing": reprocessing})
