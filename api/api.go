@@ -28,6 +28,7 @@ func InitAPI() {
 	group.POST("/handler/persist", startSystemPersistHandler)
 	group.POST("/persist/sync", syncPersist)
 	group.POST("/reprocessing/failure", reprocessingFailure)
+	group.POST("/reprocessing/set_status", setStatusReprocessing)
 	// Start server
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT"))))
 }
