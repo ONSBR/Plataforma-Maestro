@@ -33,6 +33,7 @@ func CleanUpFailureReprocessing(systemID string) error {
 	})()
 	context, proceed, reprocessing, err := pickReprocessing(systemID)
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 	if !proceed {
@@ -41,6 +42,7 @@ func CleanUpFailureReprocessing(systemID string) error {
 	if context == nil {
 		return fmt.Errorf("context is null")
 	}
+
 	evt := new(domain.Event)
 	evt.Name = fmt.Sprintf("%s.reprocessing.droping", systemID)
 	evt.Payload = make(map[string]interface{})
@@ -62,5 +64,5 @@ func CleanUpFailureReprocessing(systemID string) error {
 		log.Error(err)
 		return err
 	}
-	return nil
+	return context.Ack()
 }

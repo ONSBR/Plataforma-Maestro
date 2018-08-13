@@ -1,8 +1,6 @@
 package api
 
 import (
-	"encoding/json"
-
 	"github.com/ONSBR/Plataforma-EventManager/domain"
 	"github.com/ONSBR/Plataforma-Maestro/actions"
 	"github.com/labstack/echo"
@@ -15,9 +13,9 @@ func reprocessingFailure(c echo.Context) error {
 	if err := c.Bind(event); err != nil {
 		return err
 	}
-	j, _ := json.Marshal(event)
-	log.Info(string(j))
+	log.Info("systemId: ", event.SystemID)
 	if err := actions.SetReprocessingFailure(event); err != nil {
+		log.Error(err)
 		return c.JSON(200, H{"message": err.Error()})
 	}
 	return c.JSON(200, H{"message": "ok"})
