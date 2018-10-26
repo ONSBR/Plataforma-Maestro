@@ -2,13 +2,16 @@ package carrot
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/streadway/amqp"
 )
 
 //Subscriber is a consumer component to Rabbit
 type Subscriber struct {
-	client *BrokerClient
+	client       *BrokerClient
+	maxRetries   int
+	currentRetry int
 }
 
 const picker = "picker"
@@ -99,19 +102,32 @@ func (sub *Subscriber) Subscribe(worker SubscribeWorker) error {
 	}
 	return nil
 }
+
+//SetMaxRetries on reconnecting subscriber
+func (sub *Subscriber) SetMaxRetries(n int) {
+	sub.maxRetries = n
+}
+
 func messageHandler(worker SubscribeWorker, msgsChan <-chan amqp.Delivery, channel *amqp.Channel, sub *Subscriber) {
 	notifyCloseChannel := channel.NotifyClose(make(chan *amqp.Error))
 	notifyClientConnectionClose := sub.client.client.NotifyClose(make(chan *amqp.Error))
-	for {
-		select { //check connection
-		case <-notifyClientConnectionClose:
-			fmt.Println("Closed client connection")
-			break
-		case <-notifyCloseChannel:
-			//work with error
-			fmt.Println("Closed Channel recover connection")
+
+	recoverConnection := func() bool {
+		fmt.Println("reconnecting to rabbitmq")
+		err := sub.client.Reconnect()
+		for err != nil && sub.currentRetry <= sub.maxRetries {
+			time.Sleep(5000 * time.Millisecond)
+			err = sub.client.Reconnect()
+			sub.currentRetry++
+
+		}
+		if sub.currentRetry > sub.maxRetries {
+			fmt.Println(fmt.Sprintf("limit of retries %d was exceed", sub.maxRetries))
+			return false
+		} else if err == nil {
 			ch, err := sub.client.client.Channel()
 			if err == nil {
+				fmt.Println("Try to connect")
 				msgs, err := ch.Consume(
 					worker.Queue,   // queue
 					"",             // consumer
@@ -123,9 +139,29 @@ func messageHandler(worker SubscribeWorker, msgsChan <-chan amqp.Delivery, chann
 				)
 				if err == nil {
 					go messageHandler(worker, msgs, ch, sub)
+					return false
+				} else {
+					fmt.Println(err)
 				}
 			}
-			break //reconnect
+		}
+		return true
+	}
+INFI:
+	for {
+		select { //check connection
+		case <-notifyClientConnectionClose:
+			if !recoverConnection() {
+				break INFI
+			} else {
+				break
+			}
+		case <-notifyCloseChannel:
+			if !recoverConnection() {
+				break INFI
+			} else {
+				break
+			}
 		case message := <-msgsChan:
 			context := new(MessageContext)
 			context.channel = channel

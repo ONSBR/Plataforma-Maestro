@@ -2,6 +2,7 @@ package carrot
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/streadway/amqp"
 )
@@ -23,25 +24,31 @@ func (pub *Publisher) Publish(exchange, routingKey string, message Message) erro
 	err := fmt.Errorf("begin")
 	var ch *amqp.Channel
 	for err != nil {
-		ch, err = pub.client.client.Channel()
-		if err == nil {
-			err = ch.Publish(
-				exchange,
-				routingKey,
-				false,
-				false,
-				amqp.Publishing{
-					Headers:         message.Headers,
-					ContentType:     message.ContentType,
-					ContentEncoding: message.Encoding,
-					Body:            message.Data,
-					DeliveryMode:    amqp.Persistent,
-					Priority:        0,
-				},
-			)
+		if pub.client.client != nil {
+			ch, err = pub.client.client.Channel()
 			if err == nil {
-				ch.Close()
+				err = ch.Publish(
+					exchange,
+					routingKey,
+					false,
+					false,
+					amqp.Publishing{
+						Headers:         message.Headers,
+						ContentType:     message.ContentType,
+						ContentEncoding: message.Encoding,
+						Body:            message.Data,
+						DeliveryMode:    amqp.Persistent,
+						Priority:        0,
+					},
+				)
+				if err == nil {
+					ch.Close()
+				}
 			}
+		}
+		if err != nil {
+			err = pub.client.Reconnect()
+			time.Sleep(1 * time.Second)
 		}
 	}
 	return err

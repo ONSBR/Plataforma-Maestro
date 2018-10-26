@@ -62,7 +62,7 @@ func Init() {
 	subConn, _ := carrot.NewBrokerClient(&config)
 
 	subscriber = carrot.NewSubscriber(subConn)
-
+	subscriber.SetMaxRetries(30)
 	pubConn, _ := carrot.NewBrokerClient(&config)
 	publisher = carrot.NewPublisher(pubConn)
 

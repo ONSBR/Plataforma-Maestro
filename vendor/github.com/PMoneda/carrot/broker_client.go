@@ -21,6 +21,12 @@ func (broker *BrokerClient) connectoToAmqp() (err error) {
 	return
 }
 
+//Reconnect to rabbitmq
+func (broker *BrokerClient) Reconnect() (err error) {
+	broker.client, err = amqp.Dial(broker.config.GetAMQPURI())
+	return
+}
+
 func (broker *BrokerClient) connectoToAPI() (err error) {
 	broker.api, err = rab.NewClient(broker.config.GetAPIURI(), broker.config.Username, broker.config.Password)
 	if err != nil {

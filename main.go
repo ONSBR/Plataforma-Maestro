@@ -27,7 +27,7 @@ func main() {
 	logo()
 
 	flag.Parse()
-	log.SetLevel(log.DEBUG)
+	log.SetLevel(log.ERROR)
 
 	if local {
 		os.Setenv("RABBITMQ_HOST", "localhost")
