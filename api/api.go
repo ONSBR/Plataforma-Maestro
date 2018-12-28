@@ -15,7 +15,7 @@ func InitAPI() {
 	e := echo.New()
 
 	// Middleware
-	//e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.HTTPErrorHandler = errorHandler
 	group := e.Group("/v1.0.0")
